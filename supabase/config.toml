@@ -1,0 +1,4 @@
+project_id = "rrqhadkzdgonkdjspxdn"
+
+[functions.extract-certificate]
+verify_jwt = false
