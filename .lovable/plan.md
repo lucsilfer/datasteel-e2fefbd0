@@ -1,61 +1,56 @@
 
+# Melhorar Parecer IA + Score A36 Circular
 
-# Corrigir Falsos Positivos de HB + Rastreabilidade
+## 1. Refinar o prompt do aiInsights na edge function
 
-## Problema
+O campo `aiInsights` atual e muito generico -- repete informacoes que ja estao visiveis nos controles (composicao, CE, etc). O prompt sera reescrito para instruir a IA a focar em:
 
-O modelo de IA esta retornando valores de HB (Dureza Brinell) em certificados que nao possuem essa informacao. Isso acontece porque o prompt atual "incentiva" a deteccao de HB com frases como "MONITORE RIGOROSAMENTE" e "Priorize a varredura", fazendo o modelo alucinar valores. Alem disso, quando HB e detectado (corretamente ou nao), nao ha rastreabilidade mostrando de onde no certificado o valor foi extraido.
+- **Aplicabilidade pratica**: para que tipos de aplicacao este material e indicado (estrutural, naval, caldeiraria, etc)
+- **Explicacao dos elementos relevantes**: breve contexto sobre o papel dos elementos que se destacam (ex: "O teor de Cr de 0.25% confere leve resistencia a corrosao mas pode impactar soldabilidade")
+- **Nao repetir** valores numericos, status ou informacoes ja exibidas nas outras abas
 
-## Solucao
+Trecho do prompt alterado (item 5):
+```
+5. Um parecer técnico (aiInsights) em português com foco em:
+   - Aplicabilidade prática do material (para quais usos é indicado)
+   - Breve explicação do papel dos elementos químicos que se destacam
+   - NÃO repita valores numéricos ou status já visíveis nos outros campos
+   - Seja conciso e focado em informações úteis para tomada de decisão
+```
 
-Duas mudancas principais:
+## 2. Substituir barra de compatibilidade A36 por marcador circular (gauge)
 
-### 1. Refinar o prompt da edge function para reduzir falsos positivos
+Atualmente o score de compatibilidade A36 e uma barra horizontal simples. Sera substituido por um **marcador circular SVG** com:
 
-Reformular as instrucoes sobre HB para serem mais restritivas:
-- Remover linguagem que incentiva a deteccao ("MONITORE RIGOROSAMENTE", "Priorize")
-- Adicionar instrucoes explicitas de que HB so deve ser extraido se houver uma coluna/campo dedicado de dureza no certificado com a unidade "HB" ou "Brinell" claramente rotulada
-- Instruir o modelo a retornar `null` na duvida
-- Adicionar um campo `hbSource` para o modelo informar de onde extraiu o valor (ex: "Campo 'Dureza Brinell' na tabela de propriedades mecanicas" ou null se nao encontrou)
-
-### 2. Adicionar campo de rastreabilidade `hbSource`
-
-- Adicionar `hbSource: string | null` ao schema da tool call na edge function
-- Adicionar `hbSource` ao tipo `AnalysisResult` em `src/types/index.ts`
-- Propagar o campo pelo `performTechnicalAnalysis`
-- Exibir no `AnalysisCard` junto ao badge de HB: mostrar de onde o valor foi extraido
-
-## Detalhes Tecnicos
+- Arco de progresso colorido (verde/amarelo/vermelho conforme o score)
+- Porcentagem grande no centro
+- Label "A36" abaixo
+- Animacao suave de preenchimento
+- Posicionado ao lado da grid de elementos quimicos
 
 ### Arquivos modificados:
 
-1. **`supabase/functions/extract-certificate/index.ts`**
-   - Reescrever a secao do prompt sobre HB para ser mais conservadora
-   - Adicionar `hbSource` ao schema da tool call (string, nullable)
-   - Adicionar `hbSource` aos campos required
+1. **`supabase/functions/extract-certificate/index.ts`** (linha 47)
+   - Reescrever instrucao do `aiInsights` no prompt para ser menos generico e focar em aplicabilidade + contexto dos elementos
 
-2. **`src/types/index.ts`**
-   - Adicionar `hbSource?: string | null` a `AnalysisResult`
+2. **`src/components/AnalysisCard.tsx`**
+   - Criar componente `CircularGauge` com SVG para o score A36
+   - Substituir a barra horizontal pelo gauge circular na aba "Composicao"
+   - Reorganizar layout: gauge ao lado da grid de elementos
 
-3. **`src/utils/calculations.ts`**
-   - Propagar `hbSource` do input para o output em `performTechnicalAnalysis`
+### Componente CircularGauge (novo, inline no AnalysisCard):
 
-4. **`src/components/AnalysisCard.tsx`**
-   - No tooltip do badge HB, mostrar `result.hbSource` como origem do dado
-   - Se `hbSource` estiver presente, exibir no alerta tecnico da aba Aplicabilidade
-
-### Prompt revisado (trecho HB):
-
-```
-3. Dureza Brinell (HB): Procure EXCLUSIVAMENTE por um campo, coluna ou secao 
-   dedicada a "Dureza", "Hardness", "HB" ou "Brinell" no certificado. 
-   - SOMENTE extraia o valor numerico se existir um campo ROTULADO explicitamente 
-     com a unidade HB ou Brinell (ex: "Dureza: 280 HB", coluna "HB" com valor 400).
-   - NAO confunda valores de Limite de Escoamento (LE/YS), Limite de Resistencia 
-     (LR/TS), Alongamento ou outros ensaios mecanicos com dureza HB.
-   - Se nao houver um campo especifico de dureza HB no certificado, retorne 
-     hbValue como null e hbSource como null.
-   - Se encontrar, informe em hbSource a localizacao exata (ex: "Coluna 'Dureza 
-     Brinell' na tabela de propriedades mecanicas").
+```text
+    ┌─────────────┐
+    │   ╭─────╮   │
+    │  ╱  87%  ╲  │
+    │ │         │ │
+    │  ╲       ╱  │
+    │   ╰─────╯   │
+    │     A36      │
+    └─────────────┘
 ```
 
+- SVG com `stroke-dasharray` e `stroke-dashoffset` para o arco
+- Cor dinamica: safe (>70), warning (40-70), critical (<40)
+- Transicao CSS no `stroke-dashoffset` para animacao de entrada
