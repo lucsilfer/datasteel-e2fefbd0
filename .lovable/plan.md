@@ -1,86 +1,86 @@
 
 
-# Landing Page + Autenticacao de Usuarios
+# Redesign Visual Profissional - Estilo Corporativo com Azul
 
 ## Objetivo
 
-Criar uma landing page publica como tela inicial do DataSteel, com chamada para o proposito da ferramenta (analise quimica via IA para reclassificacao de chapas de aco de desvio - NTU, NRU, NIR, QC), e um sistema de login/cadastro para proteger o acesso a ferramenta de analise.
+Transformar o visual atual (tema escuro com glassmorphism) em um visual corporativo profissional inspirado na referencia (Extranet Usiminas), substituindo o verde pelo azul como cor destaque. O layout ficara com fundo claro, cards brancos com bordas sutis e tipografia limpa.
 
-## Estrutura de Paginas
+## Mudancas Visuais
+
+### Antes vs Depois
 
 ```text
-/              -> Landing Page (publica)
-/auth          -> Login / Cadastro
-/dashboard     -> Ferramenta de analise (protegida, conteudo atual do Index)
+ANTES                          DEPOIS
+- Fundo escuro azul            - Fundo cinza claro (#f5f7fa)
+- Cards com glassmorphism      - Cards brancos com sombra sutil
+- Bordas com glow neon         - Bordas cinza discretas
+- Texto claro sobre escuro     - Texto escuro sobre claro
+- Efeitos de blur/glow         - Visual limpo e corporativo
 ```
 
-## Mudancas
+### Paleta de Cores (azul no lugar do verde)
 
-### 1. Banco de Dados
-
-Nenhuma tabela de perfil necessaria neste momento -- apenas autenticacao basica (email + senha) usando o sistema de autenticacao integrado do Lovable Cloud.
-
-**Importante**: Confirmacao de email sera desabilitada para facilitar o uso inicial (auto-confirm habilitado), a menos que voce prefira que os usuarios confirmem por email antes de acessar.
-
-### 2. Novas Paginas
-
-**`src/pages/Landing.tsx`** - Landing page publica com:
-- Hero section com titulo grande "DataSteel" em texto gradiente
-- Subtitulo explicando o proposito: analise quimica via IA para reclassificacao de chapas de aco de desvio (NTU, NRU, NIR, QC)
-- Secao de features com icones: Upload de certificados, Analise por IA, Compatibilidade A36, Parecer tecnico
-- Botao CTA "Acessar Plataforma" que direciona para `/auth`
-- Estilo glass-card e glow consistente com o tema atual
-
-**`src/pages/Auth.tsx`** - Pagina de autenticacao com:
-- Formulario de login (email + senha)
-- Formulario de cadastro (email + senha)
-- Toggle entre login e cadastro
-- Estilo glass-card integrado ao tema escuro
-- Redirect automatico para `/dashboard` apos login
-
-**`src/pages/Dashboard.tsx`** - Conteudo atual do Index movido para ca:
-- Header com botao de logout
-- Toda a logica de upload e analise existente
-- Rota protegida (redireciona para `/auth` se nao autenticado)
-
-### 3. Componente de Protecao de Rota
-
-**`src/components/ProtectedRoute.tsx`**:
-- Verifica sessao ativa via `onAuthStateChange`
-- Redireciona para `/auth` se nao autenticado
-- Mostra loading enquanto verifica
-
-### 4. Rotas (`src/App.tsx`)
-
-Atualizar para incluir as 3 rotas:
-- `/` -> Landing (publica)
-- `/auth` -> Auth (publica, redireciona para dashboard se ja logado)
-- `/dashboard` -> Dashboard (protegida)
+| Elemento | Cor |
+|----------|-----|
+| Header | Azul escuro (#1e3a5f) |
+| Fundo pagina | Cinza claro (#f5f7fa) |
+| Cards | Branco com borda cinza |
+| Botoes primarios | Azul (#2563eb) |
+| Texto principal | Cinza escuro (#1a1a2e) |
+| Texto secundario | Cinza medio (#64748b) |
 
 ## Detalhes Tecnicos
 
-### Arquivos criados:
-1. **`src/pages/Landing.tsx`** - Hero + features + CTA
-2. **`src/pages/Auth.tsx`** - Login/cadastro com Supabase Auth
-3. **`src/pages/Dashboard.tsx`** - Conteudo migrado do Index atual + logout
-4. **`src/components/ProtectedRoute.tsx`** - Guard de autenticacao
+### 1. `src/index.css` - Nova paleta de variaveis CSS
+
+Substituir as variaveis CSS do `:root` para um tema claro corporativo:
+- `--background`: branco/cinza claro
+- `--foreground`: cinza escuro
+- `--card`: branco puro
+- `--primary`: azul (#2563eb)
+- `--border`: cinza claro
+- Remover efeitos de glow das classes utilitarias (.glass-card, .glow-border)
+- Substituir `.glass-card` por card branco com sombra sutil e borda cinza
+
+### 2. `src/pages/Landing.tsx` - Landing page corporativa
+
+- Header com fundo azul escuro solido (como o header da referencia)
+- Remover gradiente de fundo radial
+- Cards de features com fundo branco e borda cinza
+- Botao CTA azul solido sem animacao de pulse-glow
+- Footer com borda superior cinza
+
+### 3. `src/pages/Auth.tsx` - Tela de login limpa
+
+- Fundo cinza claro
+- Card de login branco com sombra
+- Remover efeitos de glassmorphism
+
+### 4. `src/pages/Dashboard.tsx` - Dashboard profissional
+
+- Header azul escuro solido (estilo barra de navegacao corporativa)
+- Fundo cinza claro
+- Remover gradiente de fundo
+
+### 5. `src/components/ImageUpload.tsx` - Upload limpo
+
+- Remover efeito de glow no hover
+- Borda tracejada cinza, fundo branco
+- Estilo mais simples e corporativo
+
+### 6. `src/components/AnalysisCard.tsx` - Cards de resultado
+
+- Card branco com borda cinza e sombra leve
+- Substituir `.glass-card` por estilo de card branco
+- Tabs com estilo mais limpo
+- Manter os indicadores de status (SAFE/WARNING/CRITICAL) com as mesmas cores
 
 ### Arquivos modificados:
-1. **`src/App.tsx`** - Novas rotas
-2. **`src/pages/Index.tsx`** - Redirecionamento para Landing
-
-### Configuracao:
-- Habilitar auto-confirm de email no Supabase Auth (para nao exigir verificacao por email)
-- Usar `supabase.auth.signUp()`, `signInWithPassword()`, `signOut()`
-- Listener `onAuthStateChange` para gerenciar estado de sessao
-
-### Landing Page - Secoes:
-
-1. **Hero**: Logo DataSteel + "Analise quimica inteligente para reclassificacao de chapas de aco" + "Transforme certificados de qualidade em insights tecnicos para materiais de desvio (NTU, NRU, NIR, QC)" + botao CTA
-2. **Features** (grid 2x2):
-   - Upload de Certificados - Envie fotos ou PDFs de certificados de qualidade
-   - Analise por IA - Extracao automatica de composicao quimica via inteligencia artificial
-   - Compatibilidade A36 - Indice ponderado de similaridade com ASTM A36
-   - Parecer Tecnico - Avaliacao de aplicabilidade considerando dureza e tratamento termico
-3. **Footer** simples com copyright
+1. `src/index.css` - Variaveis CSS e classes utilitarias
+2. `src/pages/Landing.tsx` - Layout e estilos
+3. `src/pages/Auth.tsx` - Estilos do card de login
+4. `src/pages/Dashboard.tsx` - Header e fundo
+5. `src/components/ImageUpload.tsx` - Estilo do upload
+6. `src/components/AnalysisCard.tsx` - Estilo dos cards de resultado
 
