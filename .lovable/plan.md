@@ -1,56 +1,75 @@
 
+# Aprimorar Calculo de Similaridade A36
 
-# Melhorias: Parecer IA com contexto HB + Reordenacao de Elementos
+## Problema
 
-## Problema 1: Parecer IA ignora contexto de dureza HB
-
-Atualmente o prompt instrui a IA a falar sobre composicao quimica e aplicabilidade, mas **nao menciona que deve considerar o valor de HB** na analise. Materiais com tratamento termico (HB) mudam completamente o comportamento mecanico -- mesmo com composicao quimica favoravel, a alta dureza invalida conclusoes baseadas apenas nos elementos.
-
-### Solucao
-
-Reescrever o item 5 do prompt em `supabase/functions/extract-certificate/index.ts` para incluir instrucao explicita:
+O calculo atual do indice de compatibilidade com A36 (linhas 77-82 de `src/utils/calculations.ts`) usa uma formula simplista com pesos arbitrarios e apenas 3 elementos (C, Mn, Mo):
 
 ```
-5. Um parecer técnico (aiInsights) em português com foco em:
-   - Se hbValue for detectado: PRIORIZE o fato de ser um aço tratado termicamente.
-     Explique que a alta dureza (HB) altera completamente as propriedades mecânicas,
-     tornando o material impróprio para dobra e usinagem convencional, 
-     independentemente da composição química aparentemente favorável.
-     Indique as aplicações corretas (desgaste, mineração, revestimentos).
-   - Se hbValue for null: foque na aplicabilidade prática baseada na composição
-     (estrutural, naval, caldeiraria, vasos de pressão, etc)
-   - Breve explicação do papel dos elementos químicos que se destacam
-   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
-   - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
+score = 100
+score -= |C - 0.18| * 100
+score -= |Mn - 0.71| * 10
+score -= |Mo - 0.28| * 50
 ```
 
-Isso garante que quando o material e HB, a IA destaca o tratamento termico como fator dominante.
+Isso nao reflete a importancia real dos fatores na similaridade com o A36.
 
----
+## Solucao
 
-## Problema 2: Ordem dos elementos quimicos
+Substituir por um sistema de pontuacao ponderada baseado nos pesos definidos pelo usuario:
 
-Atualmente o `Object.keys()` retorna os elementos na ordem da interface `ChemicalElements` (C, Si, Mn, P, S, Cr, Mo, Ni, Cu, V). O usuario quer a ordem por relevancia tecnica:
+| Fator | Peso | Valor referencia A36 | Faixa aceitavel |
+|-------|------|---------------------|-----------------|
+| CE (Carbono Equivalente) | 5 | 0.35 | 0 - 0.40 (SAFE) |
+| C (Carbono) | 2 | 0.18 | 0 - 0.22 (SAFE) |
+| Mn (Manganes) | 2 | 0.71 | 0 - 1.00 (SAFE) |
+| P (Fosforo) | 0.5 | 0.012 | 0 - 0.030 (SAFE) |
+| S (Enxofre) | 0.5 | 0.015 | 0 - 0.020 (SAFE) |
 
-**C, Mn, S, P, Si, Cr, Mo, Cu, Ni, V**
+**Peso total: 10**
 
-### Solucao
+### Logica de calculo
 
-Em `src/components/AnalysisCard.tsx`, substituir `Object.keys(result.elements)` por um array fixo com a ordem desejada:
+Para cada fator, calcular uma pontuacao individual de 0 a 1 baseada em quao proximo o valor esta da faixa ideal do A36:
+
+- **CE**: score = 1.0 se CE <= 0.40; decresce linearmente ate 0 quando CE >= 0.60
+- **C**: score = 1.0 se C <= 0.22; decresce linearmente ate 0 quando C >= 0.35
+- **Mn**: score = 1.0 se Mn <= 1.00; decresce linearmente ate 0 quando Mn >= 1.60
+- **P**: score = 1.0 se P <= 0.030; decresce linearmente ate 0 quando P >= 0.050
+- **S**: score = 1.0 se S <= 0.020; decresce linearmente ate 0 quando S >= 0.050
+
+Formula final:
+
+```
+index = ((scoreCE * 5) + (scoreC * 2) + (scoreMn * 2) + (scoreP * 0.5) + (scoreS * 0.5)) / 10 * 100
+```
+
+Materiais HB continuam com `compatibilityIndex = 0` (incompativeis com A36 por definicao).
+
+## Detalhes Tecnicos
+
+### Arquivo modificado: `src/utils/calculations.ts`
+
+Substituir as linhas 77-82 (bloco `else` do calculo de compatibilidade) por:
 
 ```typescript
-const ELEMENT_ORDER: Array<keyof ChemicalElements> = ['C', 'Mn', 'S', 'P', 'Si', 'Cr', 'Mo', 'Cu', 'Ni', 'V'];
+// Pontuacao individual por fator (0 a 1)
+const scoreElement = (val: number | null, maxSafe: number, maxRange: number): number => {
+  if (val === null) return 1; // sem dado = neutro
+  if (val <= maxSafe) return 1;
+  if (val >= maxRange) return 0;
+  return 1 - (val - maxSafe) / (maxRange - maxSafe);
+};
+
+const scoreCE = scoreElement(ce, 0.40, 0.60);
+const scoreC  = scoreElement(extracted.elements.C, 0.22, 0.35);
+const scoreMn = scoreElement(extracted.elements.Mn, 1.00, 1.60);
+const scoreP  = scoreElement(extracted.elements.P, 0.030, 0.050);
+const scoreS  = scoreElement(extracted.elements.S, 0.020, 0.050);
+
+const weightedScore = (scoreCE * 5) + (scoreC * 2) + (scoreMn * 2) + (scoreP * 0.5) + (scoreS * 0.5);
+const totalWeight = 10;
+compatibilityIndex = Math.round((weightedScore / totalWeight) * 100);
 ```
 
-E usar esse array no mapeamento em vez de `Object.keys()`.
-
----
-
-## Arquivos modificados
-
-1. **`supabase/functions/extract-certificate/index.ts`** (linhas 50-54)
-   - Reescrever instrucao do `aiInsights` para considerar HB como fator dominante quando presente
-
-2. **`src/components/AnalysisCard.tsx`** (linhas 132-140)
-   - Criar constante `ELEMENT_ORDER` com a sequencia correta
-   - Substituir `Object.keys(result.elements)` por `ELEMENT_ORDER`
+Nenhum outro arquivo precisa ser alterado -- o `CircularGauge` no `AnalysisCard.tsx` ja exibe o valor de `compatibilityIndex` corretamente.
