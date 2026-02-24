@@ -53,30 +53,24 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) 
   const hasFile = preview || (isPdf && fileName);
 
   return (
-    <div className="relative group">
-      {/* Glassmorphism glow effect */}
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-      
+    <div className="corporate-card">
       <label
         htmlFor="certificate-upload"
-        className={`relative flex flex-col items-center justify-center min-h-[280px] cursor-pointer transition-all duration-500 rounded-2xl border-2 border-dashed backdrop-blur-sm ${
+        className={`relative flex flex-col items-center justify-center min-h-[240px] cursor-pointer transition-all duration-300 rounded-lg border-2 border-dashed m-1 ${
           isDragging
-            ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/10'
+            ? 'border-primary bg-primary/5'
             : hasFile
-              ? 'border-primary/30 bg-card/80'
-              : 'border-border hover:border-primary/40 hover:bg-card/50 bg-card/30'
+              ? 'border-border bg-card'
+              : 'border-border hover:border-primary/50 bg-card'
         }`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
       >
         {isLoading ? (
-          <div className="flex flex-col items-center gap-4 text-muted-foreground animate-in fade-in duration-300">
-            <div className="relative">
-              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-              <div className="absolute -inset-2 rounded-3xl border border-primary/20 animate-pulse" />
+          <div className="flex flex-col items-center gap-4 text-muted-foreground">
+            <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Loader2 className="h-7 w-7 animate-spin text-primary" />
             </div>
             <div className="text-center">
               <p className="text-sm font-semibold text-foreground">Analisando certificado...</p>
@@ -84,18 +78,18 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) 
             </div>
           </div>
         ) : hasFile ? (
-          <div className="relative w-full p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="relative w-full p-6">
             <button
               onClick={clearFile}
-              className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-muted/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+              className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-muted flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
             >
               <X className="h-4 w-4" />
             </button>
             
             {isPdf ? (
               <div className="flex flex-col items-center gap-4">
-                <div className="h-20 w-20 rounded-2xl bg-destructive/10 flex items-center justify-center">
-                  <FileText className="h-10 w-10 text-destructive" />
+                <div className="h-16 w-16 rounded-lg bg-destructive/10 flex items-center justify-center">
+                  <FileText className="h-8 w-8 text-destructive" />
                 </div>
                 <div className="text-center">
                   <p className="text-sm font-semibold text-foreground">{fileName}</p>
@@ -107,7 +101,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) 
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
-                <img src={preview!} alt="Preview" className="max-h-[220px] object-contain rounded-xl shadow-md" />
+                <img src={preview!} alt="Preview" className="max-h-[200px] object-contain rounded-lg border border-border" />
                 <div className="flex items-center gap-1.5">
                   <CheckCircle2 className="h-3.5 w-3.5 text-safe" />
                   <span className="text-xs text-muted-foreground">{fileName}</span>
@@ -116,19 +110,19 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) 
             )}
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-4 py-10 animate-in fade-in duration-300">
-            <div className={`h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center transition-transform duration-300 ${isDragging ? 'scale-110' : ''}`}>
-              <Upload className="h-9 w-9 text-primary" />
+          <div className="flex flex-col items-center gap-4 py-8">
+            <div className={`h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center transition-transform duration-300 ${isDragging ? 'scale-110' : ''}`}>
+              <Upload className="h-8 w-8 text-primary" />
             </div>
-            <div className="text-center space-y-1.5">
-              <p className="text-base font-semibold text-foreground">Arraste o certificado aqui</p>
-              <p className="text-sm text-muted-foreground">ou clique para selecionar</p>
+            <div className="text-center space-y-1">
+              <p className="text-sm font-semibold text-foreground">Arraste o certificado aqui</p>
+              <p className="text-xs text-muted-foreground">ou clique para selecionar</p>
             </div>
-            <div className="flex items-center gap-3 mt-2">
-              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+            <div className="flex items-center gap-3 mt-1">
+              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-muted text-muted-foreground border border-border">
                 <FileText className="h-3 w-3" /> PDF
               </span>
-              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md bg-muted text-muted-foreground border border-border">
                 JPG / PNG
               </span>
             </div>
