@@ -37,12 +37,15 @@ serve(async (req) => {
 Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou "Heat No"), extraia:
 1. O número da corrida.
 2. A composição química (C, Si, Mn, P, S, Cr, Mo, Ni, Cu, V). Se um elemento não estiver presente, retorne null.
-3. Dureza Brinell (HB): Procure EXCLUSIVAMENTE por um campo, coluna ou seção dedicada a "Dureza", "Hardness", "HB" ou "Brinell" no certificado.
-   - SOMENTE extraia o valor numérico se existir um campo ROTULADO explicitamente com a unidade HB ou Brinell (ex: "Dureza: 280 HB", coluna "HB" com valor 400).
-   - NÃO confunda valores de Limite de Escoamento (LE/YS), Limite de Resistência (LR/TS), Alongamento ou outros ensaios mecânicos com dureza HB.
-   - Se não houver um campo específico de dureza HB no certificado, retorne hbValue como null e hbSource como null.
-   - Se encontrar, informe em hbSource a localização exata no certificado (ex: "Coluna 'Dureza Brinell' na tabela de propriedades mecânicas").
-   - NA DÚVIDA, retorne null. É preferível não detectar a inventar um valor.
+3. Dureza Brinell (HB): Procure o valor de HB nas seguintes fontes, em ordem de prioridade:
+   a) Campo, coluna ou seção dedicada a "Dureza", "Hardness", "HB" ou "Brinell" (ex: "Dureza: 280 HB", coluna "HB" com valor 400).
+   b) Valor HB embutido no nome/grau do material (Qualidade/Steel Grade). Exemplo: "NRU-CG-QC-HB-320" contém HB 320. Se o grau contém "HB" seguido de um número (ex: HB-320, HB320, HB 400), extraia esse número como hbValue.
+   c) Tabela de ensaios mecânicos com coluna específica de dureza.
+   REGRAS:
+   - NÃO confunda LE/YS, LR/TS, Alongamento ou outros ensaios com dureza HB.
+   - Se encontrar, informe em hbSource a localização exata (ex: "Grau do material 'NRU-CG-QC-HB-320'" ou "Coluna 'Dureza Brinell'").
+   - Se NÃO encontrar em nenhuma das fontes acima, retorne hbValue e hbSource como null.
+   - NA DÚVIDA, retorne null.
 4. Dimensões e o grau do material vinculados àquela corrida.
 5. Um parecer técnico (aiInsights) em português com foco em:
    - Aplicabilidade prática do material (estrutural, naval, caldeiraria, vasos de pressão, etc)
