@@ -59,25 +59,23 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
-
-      <header className="sticky top-0 z-50 glass-card rounded-none border-x-0 border-t-0">
+      <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6 text-primary" />
+            <FlaskConical className="h-6 w-6" />
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-gradient">DataSteel</h1>
-              <p className="text-xs text-muted-foreground">Análise inteligente de certificados</p>
+              <h1 className="text-lg font-bold tracking-tight">DataSteel</h1>
+              <p className="text-xs text-white/70">Análise inteligente de certificados</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
+          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
             <LogOut className="h-4 w-4 mr-2" />
             Sair
           </Button>
         </div>
       </header>
 
-      <main className="relative container max-w-5xl mx-auto px-4 py-8 space-y-8">
+      <main className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
         <ImageUpload onFileSelected={handleFileSelected} isLoading={isLoading} />
 
         {results.length > 0 && (
