@@ -37,14 +37,18 @@ serve(async (req) => {
 Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou "Heat No"), extraia:
 1. O número da corrida.
 2. A composição química (C, Si, Mn, P, S, Cr, Mo, Ni, Cu, V). Se um elemento não estiver presente, retorne null.
-3. O valor de Dureza Brinell (HB). MONITORE RIGOROSAMENTE o campo de propriedades mecânicas e observações em busca da unidade 'HB' ou 'Brinell'. Se detectar qualquer menção a HB (ex: HB 280, 400), extraia o valor numérico. Se não houver, retorne null.
+3. Dureza Brinell (HB): Procure EXCLUSIVAMENTE por um campo, coluna ou seção dedicada a "Dureza", "Hardness", "HB" ou "Brinell" no certificado.
+   - SOMENTE extraia o valor numérico se existir um campo ROTULADO explicitamente com a unidade HB ou Brinell (ex: "Dureza: 280 HB", coluna "HB" com valor 400).
+   - NÃO confunda valores de Limite de Escoamento (LE/YS), Limite de Resistência (LR/TS), Alongamento ou outros ensaios mecânicos com dureza HB.
+   - Se não houver um campo específico de dureza HB no certificado, retorne hbValue como null e hbSource como null.
+   - Se encontrar, informe em hbSource a localização exata no certificado (ex: "Coluna 'Dureza Brinell' na tabela de propriedades mecânicas").
+   - NA DÚVIDA, retorne null. É preferível não detectar a inventar um valor.
 4. Dimensões e o grau do material vinculados àquela corrida.
 5. Um parecer técnico (aiInsights) em português focado na qualidade do material para aquela corrida específica.
 
 REGRAS IMPORTANTES:
 - Fidelidade aos Dados: Se um elemento químico ou o valor de HB não estiver presente, retorne null. Não especule valores.
 - Isolamento: A composição química e a dureza (HB) devem estar estritamente vinculadas ao seu respectivo número de corrida.
-- Detecção de HB: A presença de HB é um gatilho crítico para segurança operacional. Priorize a varredura deste campo.
 
 Retorne os dados usando a função extract_heats.`;
 
@@ -100,11 +104,12 @@ Retorne os dados usando a função extract_heats.`;
                           required: ["C", "Si", "Mn", "P", "S", "Cr", "Mo", "Ni", "Cu", "V"],
                         },
                         hbValue: { type: "number", nullable: true },
+                        hbSource: { type: "string", nullable: true },
                         dimensions: { type: "string" },
                         materialGrade: { type: "string" },
                         aiInsights: { type: "string" },
                       },
-                      required: ["heatNumber", "elements", "dimensions", "materialGrade", "aiInsights"],
+                      required: ["heatNumber", "elements", "hbValue", "hbSource", "dimensions", "materialGrade", "aiInsights"],
                     },
                   },
                 },

@@ -15,6 +15,7 @@ export interface AnalysisResult {
   heatNumber: string;
   elements: ChemicalElements;
   hbValue: number | null;
+  hbSource?: string | null;
   ce: number;
   compatibilityIndex: number;
   dimensions: string;

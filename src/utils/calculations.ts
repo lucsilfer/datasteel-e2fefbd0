@@ -50,6 +50,7 @@ export const performTechnicalAnalysis = (
     heatNumber: string;
     elements: ChemicalElements;
     hbValue: number | null;
+    hbSource?: string | null;
     dimensions: string;
     materialGrade: string;
     aiInsights: string;
