@@ -74,12 +74,21 @@ export const performTechnicalAnalysis = (
       machining: 'Exigirá ferramentas de metal duro (pastilhas de Wídia) e velocidades de corte reduzidas devido à alta dureza superficial.'
     };
   } else {
-    let score = 100;
-    const { C, Mn, Mo } = extracted.elements;
-    if (C !== null) score -= Math.abs(C - 0.18) * 100;
-    if (Mn !== null) score -= Math.abs(Mn - 0.71) * 10;
-    if (Mo !== null) score -= Math.abs(Mo - 0.28) * 50;
-    compatibilityIndex = Math.max(0, Math.min(100, Math.round(score)));
+    const scoreElement = (val: number | null, maxSafe: number, maxRange: number): number => {
+      if (val === null) return 1;
+      if (val <= maxSafe) return 1;
+      if (val >= maxRange) return 0;
+      return 1 - (val - maxSafe) / (maxRange - maxSafe);
+    };
+
+    const scoreCE = scoreElement(ce, 0.40, 0.60);
+    const scoreC  = scoreElement(extracted.elements.C, 0.22, 0.35);
+    const scoreMn = scoreElement(extracted.elements.Mn, 1.00, 1.60);
+    const scoreP  = scoreElement(extracted.elements.P, 0.030, 0.050);
+    const scoreS  = scoreElement(extracted.elements.S, 0.020, 0.050);
+
+    const weightedScore = (scoreCE * 5) + (scoreC * 2) + (scoreMn * 2) + (scoreP * 0.5) + (scoreS * 0.5);
+    compatibilityIndex = Math.round((weightedScore / 10) * 100);
 
     const isGoodForWelding = ce < 0.40;
     const isGoodForBending = (extracted.elements.Cr || 0) < 0.10;
