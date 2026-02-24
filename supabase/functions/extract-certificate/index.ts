@@ -14,15 +14,23 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const { base64Image } = await req.json();
+    const { base64Image, mimeType } = await req.json();
     if (!base64Image) {
-      return new Response(JSON.stringify({ error: "No image provided" }), {
+      return new Response(JSON.stringify({ error: "No file provided" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // Extract raw base64 data (remove data URL prefix if present)
     const imageData = base64Image.includes(",") ? base64Image.split(",")[1] : base64Image;
+    
+    // Detect mime type from data URL or use provided mimeType
+    let detectedMime = mimeType || "image/jpeg";
+    if (!mimeType && base64Image.includes(",")) {
+      const match = base64Image.match(/^data:([^;]+);/);
+      if (match) detectedMime = match[1];
+    }
 
     const prompt = `Analise este certificado de aço e realize uma varredura cíclica para identificar todas as corridas (Heats) presentes.
               
@@ -54,7 +62,7 @@ Retorne os dados usando a função extract_heats.`;
             content: [
               {
                 type: "image_url",
-                image_url: { url: `data:image/jpeg;base64,${imageData}` },
+                image_url: { url: `data:${detectedMime};base64,${imageData}` },
               },
               { type: "text", text: prompt },
             ],
@@ -126,7 +134,7 @@ Retorne os dados usando a função extract_heats.`;
       }
       const errorText = await response.text();
       console.error("AI gateway error:", response.status, errorText);
-      return new Response(JSON.stringify({ error: "Erro ao processar imagem" }), {
+      return new Response(JSON.stringify({ error: "Erro ao processar arquivo" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

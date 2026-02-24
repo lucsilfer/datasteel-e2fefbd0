@@ -1,26 +1,33 @@
 import React, { useCallback, useState } from 'react';
-import { Upload, FileImage, Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Upload, FileText, Loader2, CheckCircle2, X } from 'lucide-react';
 
 interface ImageUploadProps {
-  onImageSelected: (base64: string) => void;
+  onFileSelected: (base64: string, mimeType: string) => void;
   isLoading: boolean;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, isLoading }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) => {
   const [preview, setPreview] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileType, setFileType] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFile = useCallback((file: File) => {
-    if (!file.type.startsWith('image/')) return;
+    const isImage = file.type.startsWith('image/');
+    const isPdf = file.type === 'application/pdf';
+    if (!isImage && !isPdf) return;
+
+    setFileName(file.name);
+    setFileType(file.type);
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const base64 = e.target?.result as string;
-      setPreview(base64);
-      onImageSelected(base64);
+      setPreview(isImage ? base64 : null);
+      onFileSelected(base64, file.type);
     };
     reader.readAsDataURL(file);
-  }, [onImageSelected]);
+  }, [onFileSelected]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -34,62 +41,109 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageSelected, isLoading })
     if (file) handleFile(file);
   }, [handleFile]);
 
+  const clearFile = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPreview(null);
+    setFileName(null);
+    setFileType(null);
+  }, []);
+
+  const isPdf = fileType === 'application/pdf';
+  const hasFile = preview || (isPdf && fileName);
+
   return (
-    <Card className="overflow-hidden">
-      <CardContent className="p-0">
-        <label
-          htmlFor="certificate-upload"
-          className={`relative flex flex-col items-center justify-center min-h-[240px] cursor-pointer transition-all duration-300 border-2 border-dashed rounded-lg m-4 ${
-            isDragging
-              ? 'border-primary bg-primary/5'
-              : preview
-                ? 'border-transparent'
-                : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-          }`}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-        >
-          {isLoading ? (
-            <div className="flex flex-col items-center gap-3 text-muted-foreground">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-sm font-medium">Analisando certificado...</p>
+    <div className="relative group">
+      {/* Glassmorphism glow effect */}
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      
+      <label
+        htmlFor="certificate-upload"
+        className={`relative flex flex-col items-center justify-center min-h-[280px] cursor-pointer transition-all duration-500 rounded-2xl border-2 border-dashed backdrop-blur-sm ${
+          isDragging
+            ? 'border-primary bg-primary/10 scale-[1.02] shadow-lg shadow-primary/10'
+            : hasFile
+              ? 'border-primary/30 bg-card/80'
+              : 'border-border hover:border-primary/40 hover:bg-card/50 bg-card/30'
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+      >
+        {isLoading ? (
+          <div className="flex flex-col items-center gap-4 text-muted-foreground animate-in fade-in duration-300">
+            <div className="relative">
+              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+              <div className="absolute -inset-2 rounded-3xl border border-primary/20 animate-pulse" />
             </div>
-          ) : preview ? (
-            <div className="relative w-full">
-              <img src={preview} alt="Preview" className="w-full max-h-[300px] object-contain rounded-md" />
-              <div className="absolute inset-0 bg-foreground/0 hover:bg-foreground/5 transition-colors rounded-md flex items-center justify-center">
-                <span className="opacity-0 hover:opacity-100 text-sm font-medium bg-card/90 px-3 py-1.5 rounded-full shadow-sm transition-opacity">
-                  Trocar imagem
-                </span>
-              </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-foreground">Analisando certificado...</p>
+              <p className="text-xs text-muted-foreground mt-1">Extraindo dados com IA</p>
             </div>
-          ) : (
-            <div className="flex flex-col items-center gap-3 text-muted-foreground py-8">
-              <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
-                <Upload className="h-6 w-6 text-primary" />
+          </div>
+        ) : hasFile ? (
+          <div className="relative w-full p-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <button
+              onClick={clearFile}
+              className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-muted/80 backdrop-blur-sm flex items-center justify-center hover:bg-destructive/10 hover:text-destructive transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            
+            {isPdf ? (
+              <div className="flex flex-col items-center gap-4">
+                <div className="h-20 w-20 rounded-2xl bg-destructive/10 flex items-center justify-center">
+                  <FileText className="h-10 w-10 text-destructive" />
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-foreground">{fileName}</p>
+                  <div className="flex items-center gap-1.5 justify-center mt-2">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-safe" />
+                    <span className="text-xs text-muted-foreground">PDF carregado</span>
+                  </div>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-sm font-medium text-foreground">Arraste o certificado aqui</p>
-                <p className="text-xs mt-1">ou clique para selecionar</p>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <img src={preview!} alt="Preview" className="max-h-[220px] object-contain rounded-xl shadow-md" />
+                <div className="flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-safe" />
+                  <span className="text-xs text-muted-foreground">{fileName}</span>
+                </div>
               </div>
-              <div className="flex items-center gap-1.5 text-xs mt-2">
-                <FileImage className="h-3.5 w-3.5" />
-                <span>JPG, PNG ou PDF</span>
-              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-4 py-10 animate-in fade-in duration-300">
+            <div className={`h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center transition-transform duration-300 ${isDragging ? 'scale-110' : ''}`}>
+              <Upload className="h-9 w-9 text-primary" />
             </div>
-          )}
-          <input
-            id="certificate-upload"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-        </label>
-      </CardContent>
-    </Card>
+            <div className="text-center space-y-1.5">
+              <p className="text-base font-semibold text-foreground">Arraste o certificado aqui</p>
+              <p className="text-sm text-muted-foreground">ou clique para selecionar</p>
+            </div>
+            <div className="flex items-center gap-3 mt-2">
+              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+                <FileText className="h-3 w-3" /> PDF
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground">
+                JPG / PNG
+              </span>
+            </div>
+          </div>
+        )}
+        <input
+          id="certificate-upload"
+          type="file"
+          accept="image/*,.pdf,application/pdf"
+          className="hidden"
+          onChange={handleInputChange}
+          disabled={isLoading}
+        />
+      </label>
+    </div>
   );
 };
 
