@@ -38,9 +38,8 @@ const Landing = () => {
             <span className="text-lg font-bold tracking-tight">DataSteel</span>
           </div>
           <Button
-            variant="outline"
             size="sm"
-            className="border-white/30 text-white hover:bg-white/10 hover:text-white"
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={() => navigate('/auth')}
           >
             Entrar
