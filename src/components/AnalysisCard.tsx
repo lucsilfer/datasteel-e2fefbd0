@@ -6,6 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Shield, AlertTriangle, XCircle, Flame, Wrench, Shapes, Brain, FlaskConical } from 'lucide-react';
+import { ChemicalElements } from '@/types';
+
+const ELEMENT_ORDER: Array<keyof ChemicalElements> = ['C', 'Mn', 'S', 'P', 'Si', 'Cr', 'Mo', 'Cu', 'Ni', 'V'];
 
 interface AnalysisCardProps {
   result: AnalysisResult;
@@ -130,7 +133,7 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
           <TabsContent value="composition" className="space-y-4 mt-0">
             <div className="flex gap-5 items-center">
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-1">
-                {(Object.keys(result.elements) as Array<keyof typeof result.elements>).map((el) => (
+                {ELEMENT_ORDER.map((el) => (
                   <ElementPill
                     key={el}
                     label={el}
