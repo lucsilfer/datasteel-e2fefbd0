@@ -5,7 +5,6 @@ import { AnalysisResult } from '@/types';
 import { performTechnicalAnalysis } from '@/utils/calculations';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisCard from '@/components/AnalysisCard';
-import ThemeToggle from '@/components/ThemeToggle';
 import { Separator } from '@/components/ui/separator';
 import { FlaskConical } from 'lucide-react';
 
@@ -56,18 +55,15 @@ const Index = () => {
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-card/60 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 glass-card rounded-none border-x-0 border-t-0">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-              <FlaskConical className="h-5 w-5 text-primary-foreground" />
-            </div>
+            <FlaskConical className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground">DataSteel</h1>
+              <h1 className="text-lg font-bold tracking-tight text-gradient">DataSteel</h1>
               <p className="text-xs text-muted-foreground">Análise inteligente de certificados</p>
             </div>
           </div>
-          <ThemeToggle />
         </div>
       </header>
 
@@ -76,7 +72,7 @@ const Index = () => {
         <ImageUpload onFileSelected={handleFileSelected} isLoading={isLoading} />
 
         {results.length > 0 && (
-          <div className="space-y-5 animate-in fade-in duration-500">
+          <div className="space-y-5 animate-fade-in">
             <div className="flex items-center gap-3">
               <Separator className="flex-1" />
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">

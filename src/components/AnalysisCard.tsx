@@ -1,7 +1,7 @@
 import React from 'react';
 import { AnalysisResult, Status } from '@/types';
 import { getElementStatus } from '@/utils/calculations';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -51,7 +51,7 @@ const ElementPill: React.FC<{ label: string; value: number | null; status: Statu
     <Tooltip>
       <TooltipTrigger asChild>
         <div className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors ${
-          status === 'CRITICAL' ? 'bg-critical/10 border border-critical/20' : status === 'WARNING' ? 'bg-warning/10 border border-warning/20' : 'bg-muted/60 border border-border/50'
+          status === 'CRITICAL' ? 'bg-critical/10 border border-critical/20' : status === 'WARNING' ? 'bg-warning/10 border border-warning/20' : 'bg-muted/30 border border-border/30'
         }`}>
           <span className="font-mono font-bold text-foreground text-xs">{label}</span>
           <div className="flex items-center gap-2">
@@ -74,8 +74,8 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
   const ceCfg = statusConfig[ceStatus];
 
   return (
-    <Card
-      className="overflow-hidden border-border/50 bg-card/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-500"
+    <div
+      className="glass-card overflow-hidden animate-slide-up"
       style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
     >
       {/* Header */}
@@ -110,9 +110,9 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
         </div>
       </div>
 
-      <CardContent className="px-6 pb-5">
+      <div className="px-6 pb-5">
         <Tabs defaultValue="composition" className="w-full">
-          <TabsList className="w-full bg-muted/50 p-1 h-auto rounded-xl mb-4">
+          <TabsList className="w-full bg-muted/30 p-1 h-auto rounded-xl mb-4 border border-border/30">
             <TabsTrigger value="composition" className="flex-1 gap-1.5 text-xs rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
               <FlaskConical className="h-3.5 w-3.5" />
               Composição
@@ -148,21 +148,21 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
           <TabsContent value="applicability" className="mt-0">
             {result.applicability ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="flex items-start gap-3 bg-muted/40 rounded-xl p-4 border border-border/30">
+                <div className="flex items-start gap-3 bg-muted/20 rounded-xl p-4 border border-border/30">
                   <Flame className="h-5 w-5 mt-0.5 text-accent shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-foreground">Desgaste</p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.applicability.wearResistance}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 bg-muted/40 rounded-xl p-4 border border-border/30">
+                <div className="flex items-start gap-3 bg-muted/20 rounded-xl p-4 border border-border/30">
                   <Shapes className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-foreground">Dobra</p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.applicability.bendingAlert || 'N/A'}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 bg-muted/40 rounded-xl p-4 border border-border/30">
+                <div className="flex items-start gap-3 bg-muted/20 rounded-xl p-4 border border-border/30">
                   <Wrench className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-foreground">Usinagem / Solda</p>
@@ -199,8 +199,8 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
             )}
           </TabsContent>
         </Tabs>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
