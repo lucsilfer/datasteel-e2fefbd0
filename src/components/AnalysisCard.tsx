@@ -52,11 +52,11 @@ const ElementPill: React.FC<{ label: string; value: number | null; status: Statu
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className={`flex items-center justify-between px-3 py-2.5 rounded-md text-sm transition-colors border ${
+        <div className={`flex items-center justify-between px-2 sm:px-3 py-2.5 rounded-md text-sm transition-colors border gap-2 min-w-0 ${
           status === 'CRITICAL' ? 'bg-critical/5 border-critical/20' : status === 'WARNING' ? 'bg-warning/5 border-warning/20' : 'bg-muted/50 border-border'
         }`}>
-          <span className="font-mono font-bold text-foreground text-xs">{label}</span>
-          <div className="flex items-center gap-2">
+          <span className="font-mono font-bold text-foreground text-xs shrink-0">{label}</span>
+          <div className="flex items-center gap-2 min-w-0">
             <span className="font-mono tabular-nums text-xs text-muted-foreground">{value !== null ? value.toFixed(4) : '—'}</span>
             <div className={`h-2.5 w-2.5 rounded-full ${
               status === 'CRITICAL' ? 'bg-critical' : status === 'WARNING' ? 'bg-warning' : 'bg-safe'
@@ -114,24 +114,24 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
 
       <div className="px-6 pb-5 pt-4">
         <Tabs defaultValue="composition" className="w-full">
-          <TabsList className="w-full bg-muted p-1 h-auto rounded-md mb-4">
-            <TabsTrigger value="composition" className="flex-1 gap-1.5 text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
-              <FlaskConical className="h-3.5 w-3.5" />
+          <TabsList className="w-full bg-muted p-1 h-auto rounded-md mb-4 overflow-hidden">
+            <TabsTrigger value="composition" className="flex-1 gap-1.5 text-[11px] sm:text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
+              <FlaskConical className="h-3.5 w-3.5 hidden sm:inline" />
               Composição
             </TabsTrigger>
-            <TabsTrigger value="applicability" className="flex-1 gap-1.5 text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
-              <Wrench className="h-3.5 w-3.5" />
+            <TabsTrigger value="applicability" className="flex-1 gap-1.5 text-[11px] sm:text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
+              <Wrench className="h-3.5 w-3.5 hidden sm:inline" />
               Aplicabilidade
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex-1 gap-1.5 text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
-              <Brain className="h-3.5 w-3.5" />
+            <TabsTrigger value="insights" className="flex-1 gap-1.5 text-[11px] sm:text-xs rounded-md data-[state=active]:bg-card data-[state=active]:shadow-sm py-2">
+              <Brain className="h-3.5 w-3.5 hidden sm:inline" />
               Parecer IA
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="composition" className="space-y-4 mt-0">
-            <div className="flex gap-5 items-center">
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-1">
+            <div className="flex flex-col-reverse sm:flex-row sm:gap-5 items-center gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-1 w-full">
                 {ELEMENT_ORDER.map((el) => (
                   <ElementPill
                     key={el}
