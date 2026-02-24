@@ -69,7 +69,10 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
                   HB {result.hbValue}
                 </Badge>
               </TooltipTrigger>
-              <TooltipContent>Dureza Brinell detectada</TooltipContent>
+              <TooltipContent>
+                <p>Dureza Brinell detectada</p>
+                {result.hbSource && <p className="text-xs mt-1 opacity-80">Fonte: {result.hbSource}</p>}
+              </TooltipContent>
             </Tooltip>
           )}
           <Badge className={`${ceCfg.className} gap-1.5 px-3 py-1`}>
@@ -162,6 +165,9 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
               <div className="border border-critical/20 bg-critical/5 rounded-xl p-4 mt-3">
                 <p className="text-xs font-semibold text-critical mb-1.5">⚠️ Alerta Técnico</p>
                 <p className="text-xs text-muted-foreground leading-relaxed">{result.justification}</p>
+                {result.hbSource && (
+                  <p className="text-xs text-muted-foreground mt-2 italic">📍 Origem HB: {result.hbSource}</p>
+                )}
               </div>
             )}
           </TabsContent>
