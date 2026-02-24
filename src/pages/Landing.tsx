@@ -44,7 +44,7 @@ const Landing = () => {
           Análise química inteligente para reclassificação de chapas de aço
         </p>
         <p className="text-muted-foreground text-center max-w-xl mb-10">
-          Transforme certificados de qualidade em insights técnicos para materiais de desvio (NTU, NRU, NIR, QC)
+          Transforme certificados de qualidade em insights técnicos para materiais de desvio NTU, NRU, NIR, QC
         </p>
 
         <Button size="lg" className="text-base px-8 py-6 animate-pulse-glow" onClick={() => navigate('/auth')}>
