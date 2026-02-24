@@ -76,7 +76,7 @@ const Dashboard = () => {
       </header>
 
       <main className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
-        <ImageUpload onFileSelected={handleFileSelected} isLoading={isLoading} />
+        <ImageUpload onFileSelected={handleFileSelected} onFileCleared={() => setResults([])} isLoading={isLoading} />
 
         {results.length > 0 && (
           <div className="space-y-5 animate-fade-in">
