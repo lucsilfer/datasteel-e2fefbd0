@@ -21,7 +21,7 @@ const features = [
   {
     icon: FileCheck,
     title: 'Parecer Técnico',
-    description: 'Avaliação de aplicabilidade considerando dureza e tratamento térmico.',
+    description: 'Avaliação de aplicabilidade utilizando ferramentas de inteligência artificial.',
   },
 ];
 
