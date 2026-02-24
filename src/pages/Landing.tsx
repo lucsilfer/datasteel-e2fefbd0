@@ -16,7 +16,7 @@ const features = [
   {
     icon: BarChart3,
     title: 'Compatibilidade A36',
-    description: 'Índice ponderado de similaridade com ASTM A36 baseado em CE, C, Mn, P e S.',
+    description: 'Índice ponderado de similaridade com ASTM A36 baseado na composição química do material.',
   },
   {
     icon: FileCheck,
