@@ -53,8 +53,10 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
      tornando o material impróprio para dobra e usinagem convencional, 
      independentemente da composição química aparentemente favorável.
      Indique as aplicações corretas (desgaste, mineração, revestimentos).
-   - Se hbValue for null: foque na aplicabilidade prática baseada na composição
-     (estrutural, naval, caldeiraria, vasos de pressão, etc)
+    - Se hbValue for null: NÃO mencione tratamento térmico, têmpera, dureza,
+      endurecimento ou ausência de HB. Foque EXCLUSIVAMENTE na composição
+      química e aplicações práticas do material (estrutural, naval, caldeiraria,
+      vasos de pressão, etc)
    - Breve explicação do papel dos elementos químicos que se destacam
    - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
    - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
