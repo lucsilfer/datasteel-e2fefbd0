@@ -3,10 +3,11 @@ import { Upload, FileText, Loader2, CheckCircle2, X } from 'lucide-react';
 
 interface ImageUploadProps {
   onFileSelected: (base64: string, mimeType: string) => void;
+  onFileCleared?: () => void;
   isLoading: boolean;
 }
 
-const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) => {
+const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, onFileCleared, isLoading }) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
@@ -47,7 +48,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onFileSelected, isLoading }) 
     setPreview(null);
     setFileName(null);
     setFileType(null);
-  }, []);
+    onFileCleared?.();
+  }, [onFileCleared]);
 
   const isPdf = fileType === 'application/pdf';
   const hasFile = preview || (isPdf && fileName);
