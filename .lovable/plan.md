@@ -1,75 +1,56 @@
 
 
-# Redesign Visual - Estilo SteelCert Analyzer
+# Melhorias: Parecer IA com contexto HB + Reordenacao de Elementos
 
-## Objetivo
+## Problema 1: Parecer IA ignora contexto de dureza HB
 
-Aplicar o design system do projeto de referencia ao projeto atual: tema escuro permanente com glassmorphism, efeitos de glow, texto gradiente e layout mais limpo e profissional.
+Atualmente o prompt instrui a IA a falar sobre composicao quimica e aplicabilidade, mas **nao menciona que deve considerar o valor de HB** na analise. Materiais com tratamento termico (HB) mudam completamente o comportamento mecanico -- mesmo com composicao quimica favoravel, a alta dureza invalida conclusoes baseadas apenas nos elementos.
 
-## Mudancas
+### Solucao
 
-### 1. Tema e CSS (`src/index.css`)
+Reescrever o item 5 do prompt em `supabase/functions/extract-certificate/index.ts` para incluir instrucao explicita:
 
-Substituir o sistema dual (light/dark) por um tema escuro unico inspirado no projeto de referencia:
+```
+5. Um parecer técnico (aiInsights) em português com foco em:
+   - Se hbValue for detectado: PRIORIZE o fato de ser um aço tratado termicamente.
+     Explique que a alta dureza (HB) altera completamente as propriedades mecânicas,
+     tornando o material impróprio para dobra e usinagem convencional, 
+     independentemente da composição química aparentemente favorável.
+     Indique as aplicações corretas (desgaste, mineração, revestimentos).
+   - Se hbValue for null: foque na aplicabilidade prática baseada na composição
+     (estrutural, naval, caldeiraria, vasos de pressão, etc)
+   - Breve explicação do papel dos elementos químicos que se destacam
+   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
+   - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
+```
 
-- Fundo escuro azulado (`222 47% 6%`)
-- Cards com fundo `222 40% 10%`
-- Primary azul vibrante (`217 91% 60%`)
-- Adicionar variaveis custom: `--steel-*`, `--success`, `--gradient-*`, `--shadow-glow`
-- Adicionar classes utilitarias: `.glass-card`, `.glow-border`, `.text-gradient`
-- Adicionar animacoes: `fadeIn`, `slideUp`, `pulseGlow`
-- Importar fonte JetBrains Mono para valores numericos
+Isso garante que quando o material e HB, a IA destaca o tratamento termico como fator dominante.
 
-### 2. Tailwind Config (`tailwind.config.ts`)
+---
 
-- Adicionar `fontFamily`: `sans`, `display`, `mono` (JetBrains Mono)
-- Adicionar cores `steel` (escala 50-900) e `success`/`info`
-- Manter cores `safe`, `warning`, `critical` existentes
+## Problema 2: Ordem dos elementos quimicos
 
-### 3. Header e Layout (`src/pages/Index.tsx`)
+Atualmente o `Object.keys()` retorna os elementos na ordem da interface `ChemicalElements` (C, Si, Mn, P, S, Cr, Mo, Ni, Cu, V). O usuario quer a ordem por relevancia tecnica:
 
-- Header: estilo `glass-card` com backdrop-blur, logo com `text-gradient`
-- Remover icone em caixa gradiente, usar icone direto com `text-primary`
-- Remover `ThemeToggle` (tema unico escuro)
-- Manter estrutura funcional identica
+**C, Mn, S, P, Si, Cr, Mo, Cu, Ni, V**
 
-### 4. Upload (`src/components/ImageUpload.tsx`)
+### Solucao
 
-- Usar classe `glass-card` no container
-- Borda `glow-border` no hover
-- Manter toda a logica de drag/drop e preview
+Em `src/components/AnalysisCard.tsx`, substituir `Object.keys(result.elements)` por um array fixo com a ordem desejada:
 
-### 5. Card de Analise (`src/components/AnalysisCard.tsx`)
+```typescript
+const ELEMENT_ORDER: Array<keyof ChemicalElements> = ['C', 'Mn', 'S', 'P', 'Si', 'Cr', 'Mo', 'Cu', 'Ni', 'V'];
+```
 
-- Usar `glass-card` ao inves de `bg-card/80`
-- Elementos quimicos com fundo `bg-muted/30` mais sutil
-- Tabs com estilo mais limpo
-- Gauge circular mantido, ajustado para combinar com novo tema
+E usar esse array no mapeamento em vez de `Object.keys()`.
 
-## Detalhes Tecnicos
+---
 
-### Arquivos modificados:
+## Arquivos modificados
 
-1. **`src/index.css`** - Substituir variaveis CSS por tema escuro unico + adicionar utilitarios (glass-card, text-gradient, glow-border, animacoes)
-2. **`tailwind.config.ts`** - Adicionar fontFamily (Inter, JetBrains Mono), cores steel/success/info
-3. **`src/pages/Index.tsx`** - Redesign header com text-gradient, remover ThemeToggle
-4. **`src/components/ImageUpload.tsx`** - Aplicar glass-card e glow-border
-5. **`src/components/AnalysisCard.tsx`** - Aplicar glass-card, ajustar cores dos elementos
+1. **`supabase/functions/extract-certificate/index.ts`** (linhas 50-54)
+   - Reescrever instrucao do `aiInsights` para considerar HB como fator dominante quando presente
 
-### Paleta de cores (tema unico escuro):
-
-| Token | Valor HSL |
-|-------|-----------|
-| background | 222 47% 6% |
-| card | 222 40% 10% |
-| primary | 217 91% 60% |
-| border | 217 20% 18% |
-| muted | 217 20% 14% |
-| muted-foreground | 215 15% 55% |
-
-### Classes utilitarias adicionadas:
-
-- `.glass-card` - bg-card/80 + backdrop-blur-xl + border-border/50 + shadow
-- `.glow-border` - border-primary/30 + shadow glow azul
-- `.text-gradient` - gradiente azul no texto (from-primary to-blue-400)
-
+2. **`src/components/AnalysisCard.tsx`** (linhas 132-140)
+   - Criar constante `ELEMENT_ORDER` com a sequencia correta
+   - Substituir `Object.keys(result.elements)` por `ELEMENT_ORDER`
