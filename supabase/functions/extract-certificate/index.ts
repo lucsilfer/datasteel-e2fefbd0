@@ -44,7 +44,11 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
    - Se encontrar, informe em hbSource a localização exata no certificado (ex: "Coluna 'Dureza Brinell' na tabela de propriedades mecânicas").
    - NA DÚVIDA, retorne null. É preferível não detectar a inventar um valor.
 4. Dimensões e o grau do material vinculados àquela corrida.
-5. Um parecer técnico (aiInsights) em português focado na qualidade do material para aquela corrida específica.
+5. Um parecer técnico (aiInsights) em português com foco em:
+   - Aplicabilidade prática do material (estrutural, naval, caldeiraria, vasos de pressão, etc)
+   - Breve explicação do papel dos elementos químicos que se destacam nesta corrida (ex: "O Cr presente confere leve resistência à corrosão")
+   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos (composição, CE, compatibilidade)
+   - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
 
 REGRAS IMPORTANTES:
 - Fidelidade aos Dados: Se um elemento químico ou o valor de HB não estiver presente, retorne null. Não especule valores.

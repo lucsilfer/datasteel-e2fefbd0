@@ -18,6 +18,34 @@ const statusConfig: Record<Status, { label: string; className: string; icon: Rea
   CRITICAL: { label: 'CRÍTICO', className: 'bg-critical text-critical-foreground', icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
+const CircularGauge: React.FC<{ value: number }> = ({ value }) => {
+  const radius = 40;
+  const stroke = 6;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+  const color = value > 70 ? 'hsl(var(--safe))' : value > 40 ? 'hsl(var(--warning))' : 'hsl(var(--critical))';
+
+  return (
+    <div className="flex flex-col items-center justify-center">
+      <svg width="100" height="100" viewBox="0 0 100 100" className="transform -rotate-90">
+        <circle cx="50" cy="50" r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
+        <circle
+          cx="50" cy="50" r={radius} fill="none"
+          stroke={color} strokeWidth={stroke}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-1000 ease-out"
+        />
+      </svg>
+      <div className="absolute flex flex-col items-center">
+        <span className="text-xl font-bold font-mono tabular-nums text-foreground">{value}%</span>
+      </div>
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">A36</p>
+    </div>
+  );
+};
+
 const ElementPill: React.FC<{ label: string; value: number | null; status: Status }> = ({ label, value, status }) => {
   return (
     <Tooltip>
@@ -100,34 +128,19 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
           </TabsList>
 
           <TabsContent value="composition" className="space-y-4 mt-0">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5">
-              {(Object.keys(result.elements) as Array<keyof typeof result.elements>).map((el) => (
-                <ElementPill
-                  key={el}
-                  label={el}
-                  value={result.elements[el]}
-                  status={getElementStatus(el, result.elements[el])}
-                />
-              ))}
-            </div>
-
-            {/* Compatibility Bar */}
-            <div className="pt-2">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Compatibilidade A36</p>
-                <span className="text-sm font-bold font-mono text-foreground">{result.compatibilityIndex}%</span>
+            <div className="flex gap-5 items-center">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-1">
+                {(Object.keys(result.elements) as Array<keyof typeof result.elements>).map((el) => (
+                  <ElementPill
+                    key={el}
+                    label={el}
+                    value={result.elements[el]}
+                    status={getElementStatus(el, result.elements[el])}
+                  />
+                ))}
               </div>
-              <div className="relative h-3 rounded-full bg-muted overflow-hidden">
-                <div
-                  className={`absolute inset-y-0 left-0 rounded-full transition-all duration-1000 ease-out ${
-                    result.compatibilityIndex > 70
-                      ? 'bg-gradient-to-r from-safe/80 to-safe'
-                      : result.compatibilityIndex > 40
-                        ? 'bg-gradient-to-r from-warning/80 to-warning'
-                        : 'bg-gradient-to-r from-critical/80 to-critical'
-                  }`}
-                  style={{ width: `${result.compatibilityIndex}%` }}
-                />
+              <div className="relative flex items-center justify-center shrink-0">
+                <CircularGauge value={result.compatibilityIndex} />
               </div>
             </div>
           </TabsContent>
