@@ -48,9 +48,15 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
    - NA DÚVIDA, retorne null.
 4. Dimensões e o grau do material vinculados àquela corrida.
 5. Um parecer técnico (aiInsights) em português com foco em:
-   - Aplicabilidade prática do material (estrutural, naval, caldeiraria, vasos de pressão, etc)
-   - Breve explicação do papel dos elementos químicos que se destacam nesta corrida (ex: "O Cr presente confere leve resistência à corrosão")
-   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos (composição, CE, compatibilidade)
+   - Se hbValue for detectado: PRIORIZE o fato de ser um aço tratado termicamente.
+     Explique que a alta dureza (HB) altera completamente as propriedades mecânicas,
+     tornando o material impróprio para dobra e usinagem convencional, 
+     independentemente da composição química aparentemente favorável.
+     Indique as aplicações corretas (desgaste, mineração, revestimentos).
+   - Se hbValue for null: foque na aplicabilidade prática baseada na composição
+     (estrutural, naval, caldeiraria, vasos de pressão, etc)
+   - Breve explicação do papel dos elementos químicos que se destacam
+   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
    - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
 
 REGRAS IMPORTANTES:
