@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -58,6 +62,18 @@ export default {
         critical: {
           DEFAULT: "hsl(var(--critical))",
           foreground: "hsl(var(--critical-foreground))",
+        },
+        steel: {
+          50: "hsl(217, 30%, 90%)",
+          100: "hsl(217, 25%, 80%)",
+          200: "hsl(217, 22%, 65%)",
+          300: "hsl(217, 20%, 50%)",
+          400: "hsl(217, 20%, 38%)",
+          500: "hsl(217, 20%, 28%)",
+          600: "hsl(217, 22%, 22%)",
+          700: "hsl(217, 25%, 16%)",
+          800: "hsl(222, 40%, 10%)",
+          900: "hsl(222, 47%, 6%)",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
