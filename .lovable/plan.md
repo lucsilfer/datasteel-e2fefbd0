@@ -1,44 +1,75 @@
 
 
-# Corrigir Deteccao de HB em Nomes de Grau do Material
+# Redesign Visual - Estilo SteelCert Analyzer
 
-## Problema
+## Objetivo
 
-O certificado USIMINAS "NTU HB.pdf" tem o grau de material **NRU-CG-QC-HB-320**, onde o valor de dureza Brinell (320 HB) esta embutido no nome do grau. O prompt atual instrui a IA a procurar SOMENTE campos dedicados/rotulados de dureza, ignorando completamente esse padrao comum em acos de dureza especificada.
+Aplicar o design system do projeto de referencia ao projeto atual: tema escuro permanente com glassmorphism, efeitos de glow, texto gradiente e layout mais limpo e profissional.
 
-O resultado atual retorna `hbValue: null` e `hbSource: null` -- o valor HB nao foi reconhecido.
+## Mudancas
 
-## Solucao
+### 1. Tema e CSS (`src/index.css`)
 
-Expandir a instrucao de deteccao de HB no prompt da edge function para incluir **3 fontes validas**:
+Substituir o sistema dual (light/dark) por um tema escuro unico inspirado no projeto de referencia:
 
-1. Campo ou coluna dedicada de dureza (ja coberto)
-2. Valor HB embutido no nome/grau do material (ex: "HB-320", "HB 400" no campo Qualidade/Steel Grade)
-3. Tabela de ensaios mecanicos com coluna "HB" ou "Dureza Brinell"
+- Fundo escuro azulado (`222 47% 6%`)
+- Cards com fundo `222 40% 10%`
+- Primary azul vibrante (`217 91% 60%`)
+- Adicionar variaveis custom: `--steel-*`, `--success`, `--gradient-*`, `--shadow-glow`
+- Adicionar classes utilitarias: `.glass-card`, `.glow-border`, `.text-gradient`
+- Adicionar animacoes: `fadeIn`, `slideUp`, `pulseGlow`
+- Importar fonte JetBrains Mono para valores numericos
+
+### 2. Tailwind Config (`tailwind.config.ts`)
+
+- Adicionar `fontFamily`: `sans`, `display`, `mono` (JetBrains Mono)
+- Adicionar cores `steel` (escala 50-900) e `success`/`info`
+- Manter cores `safe`, `warning`, `critical` existentes
+
+### 3. Header e Layout (`src/pages/Index.tsx`)
+
+- Header: estilo `glass-card` com backdrop-blur, logo com `text-gradient`
+- Remover icone em caixa gradiente, usar icone direto com `text-primary`
+- Remover `ThemeToggle` (tema unico escuro)
+- Manter estrutura funcional identica
+
+### 4. Upload (`src/components/ImageUpload.tsx`)
+
+- Usar classe `glass-card` no container
+- Borda `glow-border` no hover
+- Manter toda a logica de drag/drop e preview
+
+### 5. Card de Analise (`src/components/AnalysisCard.tsx`)
+
+- Usar `glass-card` ao inves de `bg-card/80`
+- Elementos quimicos com fundo `bg-muted/30` mais sutil
+- Tabs com estilo mais limpo
+- Gauge circular mantido, ajustado para combinar com novo tema
 
 ## Detalhes Tecnicos
 
-### Arquivo modificado: `supabase/functions/extract-certificate/index.ts`
+### Arquivos modificados:
 
-Reescrever a instrucao 3 (Dureza Brinell) no prompt para:
+1. **`src/index.css`** - Substituir variaveis CSS por tema escuro unico + adicionar utilitarios (glass-card, text-gradient, glow-border, animacoes)
+2. **`tailwind.config.ts`** - Adicionar fontFamily (Inter, JetBrains Mono), cores steel/success/info
+3. **`src/pages/Index.tsx`** - Redesign header com text-gradient, remover ThemeToggle
+4. **`src/components/ImageUpload.tsx`** - Aplicar glass-card e glow-border
+5. **`src/components/AnalysisCard.tsx`** - Aplicar glass-card, ajustar cores dos elementos
 
-```
-3. Dureza Brinell (HB): Procure o valor de HB nas seguintes fontes, em ordem de prioridade:
-   a) Campo, coluna ou secao dedicada a "Dureza", "Hardness", "HB" ou "Brinell" 
-      (ex: "Dureza: 280 HB", coluna "HB" com valor 400).
-   b) Valor HB embutido no nome/grau do material (Qualidade/Steel Grade). 
-      Exemplo: "NRU-CG-QC-HB-320" contem HB 320.
-      Se o grau contem "HB" seguido de um numero (ex: HB-320, HB320, HB 400), 
-      extraia esse numero como hbValue.
-   c) Tabela de ensaios mecanicos com coluna especifica de dureza.
-   
-   REGRAS:
-   - NAO confunda LE/YS, LR/TS, Alongamento ou outros ensaios com dureza HB.
-   - Se encontrar, informe em hbSource a localizacao exata 
-     (ex: "Grau do material 'NRU-CG-QC-HB-320'" ou "Coluna 'Dureza Brinell'").
-   - Se NAO encontrar em nenhuma das fontes acima, retorne hbValue e hbSource como null.
-   - NA DUVIDA, retorne null.
-```
+### Paleta de cores (tema unico escuro):
 
-Nenhum outro arquivo precisa ser modificado -- o frontend ja exibe hbValue e hbSource corretamente quando presentes.
+| Token | Valor HSL |
+|-------|-----------|
+| background | 222 47% 6% |
+| card | 222 40% 10% |
+| primary | 217 91% 60% |
+| border | 217 20% 18% |
+| muted | 217 20% 14% |
+| muted-foreground | 215 15% 55% |
+
+### Classes utilitarias adicionadas:
+
+- `.glass-card` - bg-card/80 + backdrop-blur-xl + border-border/50 + shadow
+- `.glow-border` - border-primary/30 + shadow glow azul
+- `.text-gradient` - gradiente azul no texto (from-primary to-blue-400)
 
