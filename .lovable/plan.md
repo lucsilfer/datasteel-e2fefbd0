@@ -1,54 +1,46 @@
 
-# Correção: Contador de Créditos Sumindo Após Compra
+# Mudancas: Ocultar Upload + Novo Sistema Data Score (DS)
 
-## Problema
+## 1. Ocultar area de upload quando houver resultados
 
-Quando o usuário retorna do Mercado Pago para o Dashboard (com `?payment=success`), o componente `CreditBalance` busca o saldo uma vez na montagem. Porém:
+Quando `results.length > 0`, o componente `ImageUpload` sera escondido no `Dashboard.tsx`. Um botao compacto "Nova Analise" aparecera no topo dos resultados para permitir ao usuario limpar os resultados e voltar ao upload. Isso libera espaco vertical para os cards de analise.
 
-1. O webhook do Mercado Pago pode ainda nao ter processado naquele instante, entao o saldo retorna 0
-2. O codigo no `useEffect` de pagamento mostra o toast "Pagamento aprovado!" mas nao chama `refresh()` no CreditBalance
-3. O Realtime pode nao entregar a atualizacao de forma confiavel (a atualizacao foi feita pelo service role no webhook)
-4. Resultado: o usuario ve "0" creditos (ou o contador "some" se o componente nao renderiza com saldo null)
+## 2. Novo sistema de pontuacao: Data Score (DS)
 
-## Solucao
+Substituir o conceito "compatibilidade A36" pelo **Data Score (DS)**, uma escala de 0 a 1000.
 
-Modificar o `useEffect` de pagamento no Dashboard para:
+### Faixas de cor:
+| Faixa | Cor | Status |
+|-------|-----|--------|
+| DS > 800 | Verde | SAFE |
+| 700 - 800 | Amarelo | WARNING |
+| DS < 700 | Vermelho | CRITICAL |
 
-1. Chamar `creditBalanceRef.current?.refresh()` imediatamente quando `payment=success`
-2. Fazer mais 2-3 tentativas com delay (ex: 2s, 5s, 10s) para cobrir o caso em que o webhook ainda nao processou
-3. Esconder o banner de "creditos insuficientes" ao retornar com pagamento bem-sucedido
+### Calculo
+O calculo atual gera um `compatibilityIndex` de 0-100 (percentual). Para converter em DS (0-1000), basta multiplicar por 10. Para materiais com HB (tempera), o DS permanece 0.
 
-## Arquivo Modificado
+## Detalhes tecnicos
+
+### `src/utils/calculations.ts`
+- Alterar `compatibilityIndex` de escala 0-100 para 0-1000:
+  - Linha 91: `Math.round((weightedScore / 10) * 1000)` em vez de `* 100`
+  - Materiais com HB: manter `compatibilityIndex = 0`
+- Remover referencias textuais a "A36" nas strings de justification (linha 70)
+
+### `src/types/index.ts`
+- Nenhuma mudanca estrutural necessaria -- `compatibilityIndex` continua como `number`, apenas muda a escala
+
+### `src/components/AnalysisCard.tsx`
+- **CircularGauge**: Atualizar para escala 0-1000
+  - Valor exibido: `{value}` sem `%`, com label "DS" em vez de "A36"
+  - Cores: `value > 800` verde, `value > 700` amarelo, senao vermelho
+  - Calculo do arco: `offset = circumference - (value / 1000) * circumference`
+- Remover qualquer texto "A36" ou "similaridade"
 
 ### `src/pages/Dashboard.tsx`
+- Envolver `ImageUpload` em condicional: so renderiza quando `results.length === 0`
+- Adicionar botao "Nova Analise" acima dos resultados que limpa `results` e `showNoCreditsBanner`
+- Remover `max-w-5xl` do main (ou aumentar para `max-w-6xl`) para cards maiores
 
-Atualizar o `useEffect` de pagamento (linhas 25-32):
-
-```text
-useEffect(() => {
-  const payment = searchParams.get('payment');
-  if (payment === 'success') {
-    toast.success('Pagamento aprovado! Seus creditos foram adicionados.');
-    setShowNoCreditsBanner(false);
-    
-    // Refresh imediato + retentativas com delay
-    creditBalanceRef.current?.refresh();
-    const delays = [2000, 5000, 10000];
-    const timers = delays.map(delay =>
-      setTimeout(() => creditBalanceRef.current?.refresh(), delay)
-    );
-    
-    return () => timers.forEach(clearTimeout);
-  } else if (payment === 'failure') {
-    toast.error('Pagamento nao concluido. Tente novamente.');
-  }
-}, [searchParams]);
-```
-
-Isso garante que, mesmo que o webhook demore alguns segundos para processar, o saldo sera atualizado na tela.
-
-## Resumo
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `Dashboard.tsx` | Adicionar refresh com retentativas apos retorno de pagamento bem-sucedido |
+### `src/pages/Index.tsx`
+- Mesma logica de ocultar upload quando ha resultados (se esta pagina ainda for usada)
