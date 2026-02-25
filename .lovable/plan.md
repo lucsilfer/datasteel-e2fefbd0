@@ -1,71 +1,54 @@
 
-
-# Correção: Mensagem Amigável ao Acabar Créditos
+# Correção: Contador de Créditos Sumindo Após Compra
 
 ## Problema
 
-Quando os créditos acabam e o usuário tenta analisar um certificado, aparece um erro genérico ou nenhuma mensagem clara. O código atual tenta extrair a mensagem do erro, mas falha silenciosamente porque não importa o tipo correto de erro (`FunctionsHttpError`) do Supabase.
+Quando o usuário retorna do Mercado Pago para o Dashboard (com `?payment=success`), o componente `CreditBalance` busca o saldo uma vez na montagem. Porém:
 
-## Solução
+1. O webhook do Mercado Pago pode ainda nao ter processado naquele instante, entao o saldo retorna 0
+2. O codigo no `useEffect` de pagamento mostra o toast "Pagamento aprovado!" mas nao chama `refresh()` no CreditBalance
+3. O Realtime pode nao entregar a atualizacao de forma confiavel (a atualizacao foi feita pelo service role no webhook)
+4. Resultado: o usuario ve "0" creditos (ou o contador "some" se o componente nao renderiza com saldo null)
 
-Duas melhorias:
+## Solucao
 
-### 1. Corrigir a extração da mensagem de erro
+Modificar o `useEffect` de pagamento no Dashboard para:
 
-Importar `FunctionsHttpError` do Supabase e verificar o tipo do erro antes de tentar ler `error.context.json()`.
+1. Chamar `creditBalanceRef.current?.refresh()` imediatamente quando `payment=success`
+2. Fazer mais 2-3 tentativas com delay (ex: 2s, 5s, 10s) para cobrir o caso em que o webhook ainda nao processou
+3. Esconder o banner de "creditos insuficientes" ao retornar com pagamento bem-sucedido
 
-### 2. Mostrar um alerta visual (não apenas um toast)
-
-Quando os créditos acabam, em vez de apenas um toast que desaparece, exibir um banner/alerta persistente na tela com um botão para comprar créditos. Isso incentiva a conversão.
-
-## Arquivos Modificados
+## Arquivo Modificado
 
 ### `src/pages/Dashboard.tsx`
 
-- Importar `FunctionsHttpError` de `@supabase/supabase-js`
-- No tratamento de erro:
-  - Verificar se `error instanceof FunctionsHttpError`
-  - Se sim, ler `error.context.json()` para obter a mensagem real
-  - Detectar se é erro de créditos (status 402) e mostrar um estado visual especial
-- Adicionar um estado `showNoCreditsBanner` que exibe um alerta na tela com botão "Comprar Créditos"
-
-### Lógica de erro atualizada
+Atualizar o `useEffect` de pagamento (linhas 25-32):
 
 ```text
-if (error) {
-  if (error instanceof FunctionsHttpError) {
-    const errorBody = await error.context.json();
-    const msg = errorBody?.error || 'Erro ao processar';
+useEffect(() => {
+  const payment = searchParams.get('payment');
+  if (payment === 'success') {
+    toast.success('Pagamento aprovado! Seus creditos foram adicionados.');
+    setShowNoCreditsBanner(false);
     
-    if (msg.includes('Créditos insuficientes') || msg.includes('créditos')) {
-      setShowNoCreditsBanner(true);  // Exibir banner visual
-    }
-    toast.error(msg);
-  } else {
-    toast.error('Erro ao processar o certificado.');
+    // Refresh imediato + retentativas com delay
+    creditBalanceRef.current?.refresh();
+    const delays = [2000, 5000, 10000];
+    const timers = delays.map(delay =>
+      setTimeout(() => creditBalanceRef.current?.refresh(), delay)
+    );
+    
+    return () => timers.forEach(clearTimeout);
+  } else if (payment === 'failure') {
+    toast.error('Pagamento nao concluido. Tente novamente.');
   }
-  creditBalanceRef.current?.refresh();
-  return;
-}
+}, [searchParams]);
 ```
 
-### Banner de créditos insuficientes
-
-Exibido acima da area de upload quando `showNoCreditsBanner` e true:
-
-```text
-+--------------------------------------------------+
-|  Seus creditos acabaram!                         |
-|  Adquira mais creditos para continuar analisando |
-|  [Comprar Creditos]                              |
-+--------------------------------------------------+
-```
-
-O banner usa o componente Alert existente com icone, texto e o dialogo BuyCreditsDialog integrado.
+Isso garante que, mesmo que o webhook demore alguns segundos para processar, o saldo sera atualizado na tela.
 
 ## Resumo
 
 | Arquivo | Mudanca |
 |---------|---------|
-| `Dashboard.tsx` | Importar FunctionsHttpError, corrigir parsing de erro, adicionar banner visual de creditos insuficientes |
-
+| `Dashboard.tsx` | Adicionar refresh com retentativas apos retorno de pagamento bem-sucedido |
