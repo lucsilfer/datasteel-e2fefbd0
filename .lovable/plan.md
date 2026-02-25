@@ -1,54 +1,37 @@
 
-# Correção: Contador de Créditos Sumindo Após Compra
+# Correcao: Drawer de Comprar Creditos cortado no mobile
 
 ## Problema
 
-Quando o usuário retorna do Mercado Pago para o Dashboard (com `?payment=success`), o componente `CreditBalance` busca o saldo uma vez na montagem. Porém:
+O Drawer no mobile esta com o conteudo transbordando horizontalmente -- os precos e cartoes de pacote sao cortados na lateral direita. Isso acontece porque:
 
-1. O webhook do Mercado Pago pode ainda nao ter processado naquele instante, entao o saldo retorna 0
-2. O codigo no `useEffect` de pagamento mostra o toast "Pagamento aprovado!" mas nao chama `refresh()` no CreditBalance
-3. O Realtime pode nao entregar a atualizacao de forma confiavel (a atualizacao foi feita pelo service role no webhook)
-4. Resultado: o usuario ve "0" creditos (ou o contador "some" se o componente nao renderiza com saldo null)
+1. Os itens de pacote usam `justify-between` com conteudo que nao quebra linha, forçando o layout alem da largura da tela
+2. O `DrawerContent` tem `px-4` mas os elementos internos nao tem `overflow-hidden` nem restricao de largura
 
 ## Solucao
 
-Modificar o `useEffect` de pagamento no Dashboard para:
+Modificar `src/components/BuyCreditsDialog.tsx`:
 
-1. Chamar `creditBalanceRef.current?.refresh()` imediatamente quando `payment=success`
-2. Fazer mais 2-3 tentativas com delay (ex: 2s, 5s, 10s) para cobrir o caso em que o webhook ainda nao processou
-3. Esconder o banner de "creditos insuficientes" ao retornar com pagamento bem-sucedido
+1. Adicionar `overflow-hidden` ao `DrawerContent` para evitar transbordamento
+2. Nos itens de pacote (`PackageList`), adicionar `min-w-0` e `overflow-hidden` para que o conteudo flexivel respeite os limites do container
+3. Reduzir padding e gap nos itens para mobile, usando classes responsivas
+4. Adicionar `truncate` ou `text-sm` nos precos para garantir que caibam na tela
 
-## Arquivo Modificado
+## Detalhes tecnicos
 
-### `src/pages/Dashboard.tsx`
+### `src/components/BuyCreditsDialog.tsx`
 
-Atualizar o `useEffect` de pagamento (linhas 25-32):
+**PackageList** -- ajustar os botoes de pacote para respeitar a largura do container:
 
-```text
-useEffect(() => {
-  const payment = searchParams.get('payment');
-  if (payment === 'success') {
-    toast.success('Pagamento aprovado! Seus creditos foram adicionados.');
-    setShowNoCreditsBanner(false);
-    
-    // Refresh imediato + retentativas com delay
-    creditBalanceRef.current?.refresh();
-    const delays = [2000, 5000, 10000];
-    const timers = delays.map(delay =>
-      setTimeout(() => creditBalanceRef.current?.refresh(), delay)
-    );
-    
-    return () => timers.forEach(clearTimeout);
-  } else if (payment === 'failure') {
-    toast.error('Pagamento nao concluido. Tente novamente.');
-  }
-}, [searchParams]);
+- No `button` de cada pacote: adicionar `w-full min-w-0 overflow-hidden`
+- No `div` que contem icone + texto (`flex items-center gap-3`): adicionar `min-w-0 flex-1`
+- No `div` que contem preco + icone de cartao: adicionar `shrink-0` para nao encolher, mas usar `text-sm` no preco para caber
+- Reduzir padding do botao de `p-4` para `p-3`
+
+**DrawerContent** -- adicionar `overflow-hidden` para conter todo o conteudo:
+
+```
+<DrawerContent className="px-4 pb-6 overflow-hidden">
 ```
 
-Isso garante que, mesmo que o webhook demore alguns segundos para processar, o saldo sera atualizado na tela.
-
-## Resumo
-
-| Arquivo | Mudanca |
-|---------|---------|
-| `Dashboard.tsx` | Adicionar refresh com retentativas apos retorno de pagamento bem-sucedido |
+Essas mudancas garantem que o conteudo do Drawer fique dentro dos limites da tela em qualquer dispositivo mobile.
