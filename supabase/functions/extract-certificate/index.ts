@@ -84,16 +84,36 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
    - Se NÃO encontrar em nenhuma das fontes acima, retorne hbValue e hbSource como null.
    - NA DÚVIDA, retorne null.
 4. Dimensões e o grau do material vinculados àquela corrida.
-5. Um parecer técnico (aiInsights) em português com foco em:
-   - Se hbValue for detectado: PRIORIZE o fato de ser um aço tratado termicamente.
-     Explique que a alta dureza (HB) altera completamente as propriedades mecânicas,
-     tornando o material impróprio para dobra e usinagem convencional, 
-     independentemente da composição química aparentemente favorável.
-     Indique as aplicações corretas (desgaste, mineração, revestimentos).
-    - Se hbValue for null: NÃO mencione tratamento térmico, têmpera, dureza,
-      endurecimento ou ausência de HB. Foque EXCLUSIVAMENTE na composição
-      química e aplicações práticas do material (estrutural, naval, caldeiraria,
-      vasos de pressão, etc)
+5. Um parecer técnico (aiInsights) em português. Siga estas regras na ordem:
+
+   REGRA 1 - Se hbValue for detectado:
+   PRIORIZE o fato de ser um aço tratado termicamente.
+   Explique que a alta dureza (HB) altera completamente as propriedades mecânicas,
+   tornando o material impróprio para dobra e usinagem convencional,
+   independentemente da composição química aparentemente favorável.
+   Indique as aplicações corretas (desgaste, mineração, revestimentos).
+   NÃO mencione recomendações de dobra, solda ou usinagem convencional.
+
+   REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
+   CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
+   E aplique a faixa correspondente:
+
+   a) CE <= 0,40: Enfatize que o material possui ótimas características
+      para dobra, usinagem e solda. Destaque a facilidade de processamento
+      e as aplicações práticas (estrutural, caldeiraria, etc).
+
+   b) CE entre 0,40 e 0,44: Alerte que o material pode apresentar dureza
+      um pouco acima do habitual para processos de dobra, usinagem e solda.
+      Recomende que alguns cuidados sejam tomados nestes processos.
+
+   c) CE acima de 0,44: Enfatize que o material possui dureza elevada e
+      poderá ser dobrado, soldado e usinado somente por processos especiais,
+      como pré-aquecimento na soldagem, uso de ferramentas específicas
+      para usinagem e dobra a quente.
+
+   Em todos os casos da REGRA 2, NÃO mencione tratamento térmico, têmpera
+   ou ausência de HB. Foque na composição química e seus efeitos práticos.
+
    - Breve explicação do papel dos elementos químicos que se destacam
    - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
    - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
