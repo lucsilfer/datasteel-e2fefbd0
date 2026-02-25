@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef, useImperativeHandle } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Coins } from 'lucide-react';
 
-const CreditBalance = () => {
+export interface CreditBalanceRef {
+  refresh: () => Promise<void>;
+}
+
+const CreditBalance = forwardRef<CreditBalanceRef>((_, ref) => {
   const [balance, setBalance] = useState<number | null>(null);
 
   const fetchBalance = async () => {
@@ -17,6 +21,10 @@ const CreditBalance = () => {
 
     setBalance(data?.balance ?? 0);
   };
+
+  useImperativeHandle(ref, () => ({
+    refresh: fetchBalance,
+  }));
 
   useEffect(() => {
     fetchBalance();
@@ -41,6 +49,8 @@ const CreditBalance = () => {
       <span className="font-semibold">{balance}</span>
     </div>
   );
-};
+});
+
+CreditBalance.displayName = 'CreditBalance';
 
 export default CreditBalance;
