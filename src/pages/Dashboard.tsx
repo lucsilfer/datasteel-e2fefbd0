@@ -26,6 +26,15 @@ const Dashboard = () => {
     const payment = searchParams.get('payment');
     if (payment === 'success') {
       toast.success('Pagamento aprovado! Seus créditos foram adicionados.');
+      setShowNoCreditsBanner(false);
+
+      creditBalanceRef.current?.refresh();
+      const delays = [2000, 5000, 10000];
+      const timers = delays.map(delay =>
+        setTimeout(() => creditBalanceRef.current?.refresh(), delay)
+      );
+
+      return () => timers.forEach(clearTimeout);
     } else if (payment === 'failure') {
       toast.error('Pagamento não concluído. Tente novamente.');
     }
