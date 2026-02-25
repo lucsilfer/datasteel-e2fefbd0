@@ -231,7 +231,24 @@ Retorne os dados usando a função extract_heats.`;
     }
 
     const extracted = JSON.parse(toolCall.function.arguments);
-    
+
+    // Deterministic post-processing: remove any CE/Carbon Equivalent mentions
+    extracted.heats.forEach((h: { aiInsights?: string; hbValue?: number | null; materialGrade?: string }) => {
+      if (h.aiInsights) {
+        h.aiInsights = h.aiInsights
+          .replace(/[^.]*(?:Carbono Equivalente|CE\s*(?:de|=|:|\()\s*\d)[^.]*\.\s*/gi, '')
+          .replace(/\s{2,}/g, ' ')
+          .trim();
+      }
+      // Fallback: extract HB from materialGrade if AI missed it
+      if ((h.hbValue === null || h.hbValue === undefined) && h.materialGrade) {
+        const hbMatch = h.materialGrade.match(/HB[- ]?(\d{2,3})/i);
+        if (hbMatch) {
+          h.hbValue = parseInt(hbMatch[1], 10);
+        }
+      }
+    });
+
     return new Response(JSON.stringify({ heats: extracted.heats }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
