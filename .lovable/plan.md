@@ -1,119 +1,92 @@
 
 
-# Integração Mercado Pago com Sistema de Créditos
+# Correção dos Bugs do Sistema de Créditos
 
-## Visao Geral
+## Diagnóstico
 
-Implementar um sistema onde usuarios compram pacotes de creditos via Mercado Pago (cartao ou Pix) e gastam 1 credito por analise de certificado.
+### Bug 1: Saldo não atualiza na tela após análise
+**Causa raiz**: O componente `CreditBalance` depende exclusivamente do Supabase Realtime para atualizar. O débito acontece no servidor (via service role na Edge Function), e a notificação Realtime pode não chegar ao cliente de forma confiável. Resultado: o saldo exibido fica "congelado" mesmo após o débito no banco.
 
-## Fluxo do Usuario
+**Solução**: Além do Realtime, expor uma função `refresh` no `CreditBalance` e chamá-la manualmente no `Dashboard` após cada análise concluída (sucesso ou erro de créditos). Isso garante que o saldo sempre reflita o valor real.
+
+### Bug 2: Erro genérico em vez de mensagem amigável
+**Causa raiz**: Quando a Edge Function retorna HTTP 402 (créditos insuficientes), o `supabase.functions.invoke()` trata como erro e coloca a resposta no objeto `error`, não em `data`. O código do Dashboard verifica `error` na linha 44 e mostra "Erro ao processar o certificado" sem ler a mensagem real que está dentro do erro.
+
+**Solução**: Extrair o corpo da resposta do objeto `error.context` (que é o Response HTTP original) para obter a mensagem amigável retornada pela Edge Function ("Créditos insuficientes. Adquira mais créditos para continuar.").
+
+### Bug 3: Saldo zerou após logout/login
+**Causa**: Isso é comportamento correto. O banco confirma 3 débitos realizados (3 créditos bônus - 3 usos = 0). O problema é que o usuário não viu os débitos acontecendo (Bug 1), então pareceu que zerou de repente.
+
+## Arquivos Modificados
+
+### 1. `src/components/CreditBalance.tsx`
+- Exportar a função `fetchBalance` para que o Dashboard possa chamá-la
+- Usar `forwardRef` + `useImperativeHandle` para expor um método `refresh()`
+- Manter o Realtime como atualização secundária
+
+### 2. `src/pages/Dashboard.tsx`
+- Criar uma `ref` para o `CreditBalance`
+- Após cada chamada ao `extract-certificate` (sucesso ou erro), chamar `creditBalanceRef.current?.refresh()`
+- Corrigir o tratamento de erro para ler a mensagem da Edge Function:
 
 ```text
-+-------------------+     +------------------+     +-------------------+
-| Dashboard         | --> | Comprar Creditos  | --> | Mercado Pago      |
-| (mostra saldo)    |     | (escolhe pacote)  |     | (cartao ou Pix)   |
-+-------------------+     +------------------+     +-------------------+
-                                                           |
-                                                           v
-+-------------------+     +------------------+     +-------------------+
-| Creditos somados  | <-- | Webhook confirma  | <-- | Pagamento aprovado|
-| ao saldo          |     | pagamento         |     |                   |
-+-------------------+     +------------------+     +-------------------+
+Antes:
+  if (error) -> toast genérico
+
+Depois:
+  if (error) -> tentar ler error.context.json() -> mostrar data.error
+  se não conseguir -> fallback para toast genérico
 ```
 
-## Etapas de Implementacao
+## Detalhes Técnicos
 
-### 1. Configurar Secret do Mercado Pago
-- Solicitar ao usuario o **Access Token** do Mercado Pago (encontrado em https://www.mercadopago.com.br/developers/panel/app)
-- Armazenar como secret `MERCADO_PAGO_ACCESS_TOKEN`
+### CreditBalance com ref
 
-### 2. Criar Tabelas no Banco de Dados
-
-**Tabela `user_credits`** - Saldo de creditos por usuario
-- `id` (uuid, PK)
-- `user_id` (uuid, referencia auth.users, unique)
-- `balance` (integer, default 3 -- creditos iniciais gratuitos)
-- `created_at`, `updated_at`
-
-**Tabela `credit_transactions`** - Historico de transacoes
-- `id` (uuid, PK)
-- `user_id` (uuid)
-- `amount` (integer, positivo = compra, negativo = uso)
-- `type` (text: 'purchase', 'usage', 'bonus')
-- `description` (text)
-- `mp_payment_id` (text, nullable -- ID do Mercado Pago)
-- `created_at`
-
-**Trigger**: Criar registro automatico em `user_credits` quando usuario se cadastra (com 3 creditos de bonus).
-
-**RLS Policies**: Usuarios so veem seus proprios dados.
-
-### 3. Edge Function: `create-payment`
-- Recebe o pacote escolhido (ex: 10, 50, 100 creditos)
-- Cria uma "preference" no Mercado Pago via API REST
-- Retorna o link de pagamento (suporta cartao e Pix automaticamente)
-- Autenticada (verifica JWT do usuario)
-
-### 4. Edge Function: `mp-webhook`
-- Endpoint publico que recebe notificacoes do Mercado Pago
-- Quando pagamento e aprovado (`status: approved`):
-  - Consulta detalhes do pagamento na API do Mercado Pago
-  - Credita o saldo do usuario na tabela `user_credits`
-  - Registra a transacao em `credit_transactions`
-
-### 5. Modificar `extract-certificate`
-- Antes de processar, verificar se o usuario tem creditos
-- Se sim: processar e debitar 1 credito
-- Se nao: retornar erro 402 com mensagem amigavel
-
-### 6. Interface do Usuario (Dashboard)
-- **Saldo de creditos** visivel no header do Dashboard
-- **Botao "Comprar Creditos"** que abre um dialog/modal com:
-  - Pacotes disponiveis (ex: 10 por R$9,90 / 50 por R$39,90 / 100 por R$69,90)
-  - Ao clicar, redireciona para checkout do Mercado Pago
-- **Mensagem** quando creditos acabam, com link para comprar mais
-- **Pagina de retorno** apos pagamento (sucesso/erro)
-
-### 7. Pagina de Pricing na Landing
-- Adicionar secao de precos na Landing Page com os pacotes disponiveis
-
-## Detalhes Tecnicos
-
-### API Mercado Pago - Criar Preference
 ```text
-POST https://api.mercadopago.com/checkout/preferences
-Authorization: Bearer ACCESS_TOKEN
+const CreditBalance = forwardRef((props, ref) => {
+  const fetchBalance = async () => { ... };
+  
+  useImperativeHandle(ref, () => ({
+    refresh: fetchBalance
+  }));
+  
+  // ... resto do componente igual
+});
+```
 
-{
-  "items": [{
-    "title": "10 Creditos DataSteel",
-    "quantity": 1,
-    "unit_price": 9.90,
-    "currency_id": "BRL"
-  }],
-  "payment_methods": {
-    "excluded_payment_types": [],
-    "installments": 1
-  },
-  "back_urls": {
-    "success": "https://datasteel.lovable.app/dashboard?payment=success",
-    "failure": "https://datasteel.lovable.app/dashboard?payment=failure"
-  },
-  "notification_url": "https://<project>.supabase.co/functions/v1/mp-webhook",
-  "external_reference": "user_id:credits_amount"
+### Tratamento de erro no Dashboard
+
+```text
+if (error) {
+  let errorMessage = 'Erro ao processar o certificado. Tente novamente.';
+  
+  // Tentar extrair mensagem amigável da resposta
+  try {
+    const errorBody = await error.context?.json();
+    if (errorBody?.error) {
+      errorMessage = errorBody.error;
+    }
+  } catch {}
+  
+  toast.error(errorMessage);
+  creditBalanceRef.current?.refresh(); // Atualizar saldo mesmo em erro
+  return;
 }
 ```
 
-### Webhook - Validacao
-O webhook recebe `{ type: "payment", data: { id: "..." } }`. A edge function consulta `GET https://api.mercadopago.com/v1/payments/{id}` para verificar o status antes de creditar.
+### Refresh após sucesso
 
-### Arquivos criados/modificados
-1. **Criar** `supabase/functions/create-payment/index.ts`
-2. **Criar** `supabase/functions/mp-webhook/index.ts`
-3. **Modificar** `supabase/functions/extract-certificate/index.ts` (verificar creditos)
-4. **Criar** `src/components/CreditBalance.tsx` (exibir saldo)
-5. **Criar** `src/components/BuyCreditsDialog.tsx` (modal de compra)
-6. **Modificar** `src/pages/Dashboard.tsx` (integrar saldo e botao de compra)
-7. **Modificar** `src/pages/Landing.tsx` (secao de precos)
-8. **Migracoes SQL** para tabelas e RLS
+```text
+// Após análise bem-sucedida
+toast.success(`${analyzed.length} corrida(s) analisada(s) com sucesso!`);
+creditBalanceRef.current?.refresh(); // Atualizar saldo
+```
 
+## Resumo das Mudanças
+
+| Arquivo | Mudança |
+|---------|---------|
+| `CreditBalance.tsx` | Adicionar forwardRef + useImperativeHandle para expor refresh() |
+| `Dashboard.tsx` | Criar ref, chamar refresh após análise, extrair mensagem de erro do context |
+
+Nenhuma mudança no banco de dados ou nas Edge Functions é necessária -- a lógica do servidor está funcionando corretamente.
