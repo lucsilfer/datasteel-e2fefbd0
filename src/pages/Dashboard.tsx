@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { AnalysisResult } from '@/types';
 import { performTechnicalAnalysis } from '@/utils/calculations';
@@ -8,15 +9,17 @@ import ImageUpload from '@/components/ImageUpload';
 import AnalysisCard from '@/components/AnalysisCard';
 import CreditBalance, { CreditBalanceRef } from '@/components/CreditBalance';
 import BuyCreditsDialog from '@/components/BuyCreditsDialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, LogOut } from 'lucide-react';
+import { FlaskConical, LogOut, AlertTriangle } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showNoCreditsBanner, setShowNoCreditsBanner] = useState(false);
   const creditBalanceRef = useRef<CreditBalanceRef>(null);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ const Dashboard = () => {
   const handleFileSelected = async (base64Data: string, mimeType: string) => {
     setIsLoading(true);
     setResults([]);
+    setShowNoCreditsBanner(false);
 
     try {
       const { data, error } = await supabase.functions.invoke('extract-certificate', {
@@ -45,12 +49,20 @@ const Dashboard = () => {
       if (error) {
         console.error('Edge function error:', error);
         let errorMessage = 'Erro ao processar o certificado. Tente novamente.';
-        try {
-          const errorBody = await error.context?.json();
-          if (errorBody?.error) {
-            errorMessage = errorBody.error;
+
+        if (error instanceof FunctionsHttpError) {
+          try {
+            const errorBody = await error.context.json();
+            if (errorBody?.error) {
+              errorMessage = errorBody.error;
+            }
+          } catch {}
+
+          if (errorMessage.toLowerCase().includes('crédito')) {
+            setShowNoCreditsBanner(true);
           }
-        } catch {}
+        }
+
         toast.error(errorMessage);
         creditBalanceRef.current?.refresh();
         return;
@@ -102,6 +114,23 @@ const Dashboard = () => {
       </header>
 
       <main className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
+        {showNoCreditsBanner && (
+          <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertTitle className="text-base font-semibold">Seus créditos acabaram!</AlertTitle>
+            <AlertDescription className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+              <span>Adquira mais créditos para continuar analisando certificados.</span>
+              <BuyCreditsDialog
+                trigger={
+                  <Button size="sm" variant="default" className="w-fit">
+                    Comprar Créditos
+                  </Button>
+                }
+              />
+            </AlertDescription>
+          </Alert>
+        )}
+
         <ImageUpload onFileSelected={handleFileSelected} onFileCleared={() => setResults([])} isLoading={isLoading} />
 
         {results.length > 0 && (
