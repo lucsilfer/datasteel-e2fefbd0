@@ -1,30 +1,62 @@
 
 
-# Corrigir divergencia do CE entre o parecer IA e o card
+# Aplicar regras de CE na Aplicabilidade (Dobra, Solda e Usinagem)
 
 ## Problema
 
-O parecer da IA (aiInsights) menciona um valor de CE calculado internamente pelo modelo de linguagem, que pode divergir do CE calculado pelo frontend (`src/utils/calculations.ts`). Isso ocorre porque o modelo faz o calculo "de cabeca" e pode arredondar de forma diferente, enquanto o frontend usa a formula exata com precisao numerica.
+A aba "Aplicabilidade" usa criterios diferentes das faixas de CE:
+- Dobra avalia apenas Cr < 0.10 (ignora CE)
+- Solda avalia apenas CE < 0.40 (sem faixa intermediaria)
+
+Isso gera contradicao: material com CE alto pode aparecer como "Excelente para Dobra".
 
 ## Solucao
 
-Adicionar uma instrucao explicita no prompt para que a IA **nunca mencione o valor numerico do CE** no parecer. O CE ja e exibido no card com badge colorido, entao repeti-lo no texto e redundante e gera confusao quando os valores divergem.
+Substituir a logica nas linhas 93-100 de `src/utils/calculations.ts` pelas 3 faixas de CE:
 
-A IA continuara usando a logica das faixas de CE para determinar o tom do parecer (otimo / cuidado / processos especiais), mas sem citar o numero.
+| Faixa CE | Dobra | Solda / Usinagem |
+|----------|-------|------------------|
+| CE <= 0,40 | Excelente para Dobra | Excelente Soldabilidade |
+| 0,40 < CE <= 0,44 | Requer cuidados na dobra | Requer cuidados na soldagem |
+| CE > 0,44 | Dobra somente a quente | Soldagem com pre-aquecimento |
 
 ## Detalhe tecnico
 
-### Arquivo: `supabase/functions/extract-certificate/index.ts`
+### Arquivo: `src/utils/calculations.ts` (linhas 93-100)
 
-Na secao do prompt referente a REGRA 2, adicionar a seguinte instrucao apos as faixas de CE:
+Substituir:
+```typescript
+const isGoodForWelding = ce < 0.40;
+const isGoodForBending = (extracted.elements.Cr || 0) < 0.10;
 
+applicability = {
+  wearResistance: 'Baixa resistência ao desgaste abrasivo.',
+  bendingAlert: isGoodForBending ? '✅ Excelente para Dobra' : '⚠️ Requer atenção na dobra',
+  machining: isGoodForWelding ? '✅ Excelente Soldabilidade' : '⚠️ Requer cuidados na soldagem'
+};
 ```
-NÃO mencione o valor numérico do CE no parecer, pois ele já é calculado
-e exibido separadamente na interface. Apenas aplique a faixa correspondente
-para definir o tom da análise.
-```
 
-Isso sera inserido junto as demais restricoes existentes (antes de "Em todos os casos da REGRA 2...").
+Por:
+```typescript
+let bendingAlert: string;
+let machining: string;
+
+if (ce <= 0.40) {
+  bendingAlert = '✅ Excelente para Dobra';
+  machining = '✅ Excelente Soldabilidade';
+} else if (ce <= 0.44) {
+  bendingAlert = '⚠️ Requer cuidados na dobra';
+  machining = '⚠️ Requer cuidados na soldagem';
+} else {
+  bendingAlert = '🔴 Dobra somente a quente com processos especiais';
+  machining = '🔴 Soldagem somente com pré-aquecimento e processos especiais';
+}
+
+applicability = {
+  wearResistance: 'Baixa resistência ao desgaste abrasivo.',
+  bendingAlert,
+  machining
+};
+```
 
 Nenhum outro arquivo precisa ser alterado.
-
