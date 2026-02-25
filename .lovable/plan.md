@@ -1,46 +1,46 @@
 
-# Mudancas: Ocultar Upload + Novo Sistema Data Score (DS)
+# Botao Imprimir Relatorio de Analise
 
-## 1. Ocultar area de upload quando houver resultados
+## Resumo
 
-Quando `results.length > 0`, o componente `ImageUpload` sera escondido no `Dashboard.tsx`. Um botao compacto "Nova Analise" aparecera no topo dos resultados para permitir ao usuario limpar os resultados e voltar ao upload. Isso libera espaco vertical para os cards de analise.
+Adicionar um botao "Imprimir Relatorio" ao lado do botao "Nova Analise" no Dashboard. Ao clicar, uma nova janela sera aberta com um relatorio formatado para impressao contendo todas as informacoes da analise, com cabecalho, rodape e o mesmo padrao visual dos cards.
 
-## 2. Novo sistema de pontuacao: Data Score (DS)
+## Arquivos a criar/modificar
 
-Substituir o conceito "compatibilidade A36" pelo **Data Score (DS)**, uma escala de 0 a 1000.
+### 1. Criar `src/components/PrintReport.tsx`
 
-### Faixas de cor:
-| Faixa | Cor | Status |
-|-------|-----|--------|
-| DS > 800 | Verde | SAFE |
-| 700 - 800 | Amarelo | WARNING |
-| DS < 700 | Vermelho | CRITICAL |
+Componente que recebe o array de `AnalysisResult` e gera o HTML do relatorio para impressao. Usara `window.open()` + `document.write()` para criar uma pagina de impressao dedicada.
 
-### Calculo
-O calculo atual gera um `compatibilityIndex` de 0-100 (percentual). Para converter em DS (0-1000), basta multiplicar por 10. Para materiais com HB (tempera), o DS permanece 0.
+**Conteudo do relatorio:**
+- **Cabecalho**: Icone FlaskConical (como SVG inline) + "DataSteel" + subtitulo "Analise Inteligente de Certificados" + data/hora da consulta
+- **Para cada corrida**, um bloco visual replicando o card:
+  - Numero da corrida, material grade, dimensoes
+  - Badge CE com cor conforme status
+  - Badge HB (se existir)
+  - Gauge DS como barra horizontal (mais adequado para impressao que o circular)
+  - Grid com todos os elementos quimicos e seus status (com bolinhas coloridas)
+  - Secao Aplicabilidade (desgaste, dobra, usinagem/solda)
+  - Alerta tecnico (se existir)
+  - Parecer IA (se existir)
+- **Rodape**: "datasteel.com.br" + texto convite: "Analise seus certificados de aco com inteligencia artificial. Acesse datasteel.com.br e experimente gratuitamente."
+
+**Estilo**: CSS inline embutido na pagina de impressao, replicando as cores do sistema:
+- Verde (safe): `#16a34a`
+- Amarelo (warning): `#eab308`
+- Vermelho (critical): `#ef4444`
+- Azul primario: `#3b82f6`
+- Azul escuro (secondary/header): `hsl(215, 50%, 23%)`
+- Fundo cinza claro, cards brancos com borda
+
+### 2. Modificar `src/pages/Dashboard.tsx`
+
+- Importar o componente/funcao de impressao
+- Adicionar botao "Imprimir Relatorio" (icone `Printer`) ao lado de "Nova Analise" na barra de acoes dos resultados
 
 ## Detalhes tecnicos
 
-### `src/utils/calculations.ts`
-- Alterar `compatibilityIndex` de escala 0-100 para 0-1000:
-  - Linha 91: `Math.round((weightedScore / 10) * 1000)` em vez de `* 100`
-  - Materiais com HB: manter `compatibilityIndex = 0`
-- Remover referencias textuais a "A36" nas strings de justification (linha 70)
-
-### `src/types/index.ts`
-- Nenhuma mudanca estrutural necessaria -- `compatibilityIndex` continua como `number`, apenas muda a escala
-
-### `src/components/AnalysisCard.tsx`
-- **CircularGauge**: Atualizar para escala 0-1000
-  - Valor exibido: `{value}` sem `%`, com label "DS" em vez de "A36"
-  - Cores: `value > 800` verde, `value > 700` amarelo, senao vermelho
-  - Calculo do arco: `offset = circumference - (value / 1000) * circumference`
-- Remover qualquer texto "A36" ou "similaridade"
-
-### `src/pages/Dashboard.tsx`
-- Envolver `ImageUpload` em condicional: so renderiza quando `results.length === 0`
-- Adicionar botao "Nova Analise" acima dos resultados que limpa `results` e `showNoCreditsBanner`
-- Remover `max-w-5xl` do main (ou aumentar para `max-w-6xl`) para cards maiores
-
-### `src/pages/Index.tsx`
-- Mesma logica de ocultar upload quando ha resultados (se esta pagina ainda for usada)
+A abordagem usara `window.open()` para criar uma janela separada com HTML/CSS dedicado a impressao. Isso garante:
+- Controle total do layout de impressao sem afetar a tela
+- CSS `@media print` para ocultar botoes e ajustar margens
+- Chamada automatica de `window.print()` apos carregar
+- Todas as abas (composicao, aplicabilidade, parecer IA) aparecerao expandidas no relatorio, sem tabs
