@@ -48,19 +48,26 @@ const Dashboard = () => {
 
       if (error) {
         console.error('Edge function error:', error);
+        console.error('Error type:', error?.constructor?.name);
+        console.error('Error context:', error?.context);
         let errorMessage = 'Erro ao processar o certificado. Tente novamente.';
 
         if (error instanceof FunctionsHttpError) {
           try {
             const errorBody = await error.context.json();
+            console.log('Error body parsed:', errorBody);
             if (errorBody?.error) {
               errorMessage = errorBody.error;
             }
-          } catch {}
-
-          if (errorMessage.toLowerCase().includes('crédito')) {
-            setShowNoCreditsBanner(true);
+          } catch (parseErr) {
+            console.error('Failed to parse error context:', parseErr);
           }
+        } else {
+          console.warn('Error is NOT FunctionsHttpError, type:', typeof error, error);
+        }
+
+        if (errorMessage.toLowerCase().includes('crédito')) {
+          setShowNoCreditsBanner(true);
         }
 
         toast.error(errorMessage);
