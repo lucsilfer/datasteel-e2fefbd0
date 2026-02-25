@@ -94,37 +94,30 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
    Indique as aplicações corretas (desgaste, mineração, revestimentos).
    NÃO mencione recomendações de dobra, solda ou usinagem convencional.
 
-   REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
-   CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
+   REGRA 2 - Se hbValue for null:
+   Avalie a composição química de forma qualitativa.
+   NÃO calcule nem mencione Carbono Equivalente, CE ou qualquer índice numérico.
+   O CE já é calculado e exibido separadamente pela interface.
 
-   PROIBIDO: Jamais cite o valor numérico do CE no texto do parecer.
-   Não escreva frases como "o CE é de 0.XX" ou "Carbono Equivalente de X".
-   O valor já é exibido na interface. Apenas use a faixa para definir o tom.
+   Defina o tom do parecer com base na composição:
+   a) Se C <= 0,22 e Mn <= 1,00 e sem elementos de liga significativos:
+      Enfatize que o material possui ótimas características para dobra, usinagem e solda.
+      Destaque a facilidade de processamento e as aplicações práticas.
 
-   E aplique a faixa correspondente:
+   b) Se C entre 0,22 e 0,25 ou Mn entre 1,00 e 1,40:
+      Alerte que o material pode requerer alguns cuidados nos processos
+      de dobra, usinagem e soldagem.
 
-   a) CE <= 0,40: Enfatize que o material possui ótimas características
-      para dobra, usinagem e solda. Destaque a facilidade de processamento
-      e as aplicações práticas (estrutural, caldeiraria, etc).
+   c) Se C > 0,25 ou Mn > 1,40 ou presença significativa de Cr/Mo:
+      Enfatize que processos especiais serão necessários
+      (pré-aquecimento na soldagem, ferramentas específicas, dobra a quente).
 
-   b) CE entre 0,40 e 0,44: Alerte que o material pode apresentar dureza
-      um pouco acima do habitual para processos de dobra, usinagem e solda.
-      Recomende que alguns cuidados sejam tomados nestes processos.
-
-   c) CE acima de 0,44: Enfatize que o material possui dureza elevada e
-      poderá ser dobrado, soldado e usinado somente por processos especiais,
-      como pré-aquecimento na soldagem, uso de ferramentas específicas
-      para usinagem e dobra a quente.
-
-   NÃO mencione o valor numérico do CE no parecer, pois ele já é calculado
-   e exibido separadamente na interface. Apenas aplique a faixa correspondente
-   para definir o tom da análise.
-
-   Em todos os casos da REGRA 2, NÃO mencione tratamento térmico, têmpera
-   ou ausência de HB. Foque na composição química e seus efeitos práticos.
-
-   - Breve explicação do papel dos elementos químicos que se destacam
-   - NÃO repita valores numéricos, percentuais, CE ou status já visíveis nos outros campos
+   Em todos os casos:
+   - Foque na composição química e seus efeitos práticos
+   - Breve explicação do papel dos elementos que se destacam
+   - NÃO mencione tratamento térmico, têmpera ou ausência de HB
+   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
+   - NÃO calcule nem mencione CE, Carbono Equivalente ou qualquer índice
    - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
 
 REGRAS IMPORTANTES:
