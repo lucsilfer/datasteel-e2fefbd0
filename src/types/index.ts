@@ -23,9 +23,9 @@ export interface AnalysisResult {
   aiInsights?: string;
   justification?: string;
   applicability?: {
-    wearResistance: string;
     bendingAlert: string | null;
     machining: string;
+    welding: string;
   };
 }
 

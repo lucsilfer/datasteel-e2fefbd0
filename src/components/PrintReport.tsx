@@ -54,16 +54,16 @@ export function printReport(results: AnalysisResult[]) {
         <h4 style="font-size:13px;font-weight:700;margin-bottom:8px;color:#1e3a5f;">Aplicabilidade</h4>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">
-            <p style="font-size:11px;font-weight:700;color:#1e3a5f;margin:0 0 4px;">🔥 Desgaste</p>
-            <p style="font-size:11px;color:#6b7280;margin:0;line-height:1.5;">${r.applicability.wearResistance}</p>
-          </div>
-          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">
             <p style="font-size:11px;font-weight:700;color:#1e3a5f;margin:0 0 4px;">🔷 Dobra</p>
             <p style="font-size:11px;color:#6b7280;margin:0;line-height:1.5;">${r.applicability.bendingAlert || 'N/A'}</p>
           </div>
           <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">
-            <p style="font-size:11px;font-weight:700;color:#1e3a5f;margin:0 0 4px;">🔧 Usinagem / Solda</p>
+            <p style="font-size:11px;font-weight:700;color:#1e3a5f;margin:0 0 4px;">🔧 Usinagem</p>
             <p style="font-size:11px;color:#6b7280;margin:0;line-height:1.5;">${r.applicability.machining}</p>
+          </div>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px;">
+            <p style="font-size:11px;font-weight:700;color:#1e3a5f;margin:0 0 4px;">🔥 Solda</p>
+            <p style="font-size:11px;color:#6b7280;margin:0;line-height:1.5;">${r.applicability.welding}</p>
           </div>
         </div>
       </div>` : '';
