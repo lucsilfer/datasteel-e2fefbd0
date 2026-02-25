@@ -67,7 +67,7 @@ export const performTechnicalAnalysis = (
 
   if (extracted.hbValue !== null) {
     compatibilityIndex = 0;
-    justification = 'Este material possui tratamento térmico de têmpera, tornando-o uma classe superior de resistência ao desgaste, não sendo tecnicamente comparável a um aço estrutural comum como o A36. Apesar da composição química poder parecer favorável, a alta dureza superficial resultará em sérios problemas de usinagem e risco de quebra na dobra se processado como um aço comum.';
+    justification = 'Este material possui tratamento térmico de têmpera, tornando-o uma classe superior de resistência ao desgaste. Apesar da composição química poder parecer favorável, a alta dureza superficial resultará em sérios problemas de usinagem e risco de quebra na dobra se processado como um aço comum.';
     applicability = {
       wearResistance: 'Ideal para revestimentos de calhas, bicas de mineração, caçambas de terraplenagem, equipamentos agrícolas e liners de misturadores.',
       bendingAlert: '⚠️ ALERTA CRÍTICO: Materiais com dureza acima de 250 HB possuem baixíssima ductilidade e alto risco de quebra catastrófica se submetidos a dobras com raios padrão.',
@@ -88,7 +88,7 @@ export const performTechnicalAnalysis = (
     const scoreS  = scoreElement(extracted.elements.S, 0.020, 0.050);
 
     const weightedScore = (scoreCE * 5) + (scoreC * 2) + (scoreMn * 2) + (scoreP * 0.5) + (scoreS * 0.5);
-    compatibilityIndex = Math.round((weightedScore / 10) * 100);
+    compatibilityIndex = Math.round((weightedScore / 10) * 1000);
 
     const isGoodForWelding = ce < 0.40;
     const isGoodForBending = (extracted.elements.Cr || 0) < 0.10;

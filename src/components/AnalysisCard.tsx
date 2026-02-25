@@ -24,8 +24,8 @@ const CircularGauge: React.FC<{ value: number }> = ({ value }) => {
   const radius = 40;
   const stroke = 6;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (value / 100) * circumference;
-  const color = value > 70 ? 'hsl(var(--safe))' : value > 40 ? 'hsl(var(--warning))' : 'hsl(var(--critical))';
+  const offset = circumference - (value / 1000) * circumference;
+  const color = value > 800 ? 'hsl(var(--safe))' : value > 700 ? 'hsl(var(--warning))' : 'hsl(var(--critical))';
 
   return (
     <div className="flex flex-col items-center justify-center">
@@ -41,9 +41,9 @@ const CircularGauge: React.FC<{ value: number }> = ({ value }) => {
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-xl font-bold font-mono tabular-nums text-foreground">{value}%</span>
+        <span className="text-xl font-bold font-mono tabular-nums text-foreground">{value}</span>
       </div>
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">A36</p>
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">DS</p>
     </div>
   );
 };
