@@ -1,92 +1,71 @@
 
 
-# Correção dos Bugs do Sistema de Créditos
+# Correção: Mensagem Amigável ao Acabar Créditos
 
-## Diagnóstico
+## Problema
 
-### Bug 1: Saldo não atualiza na tela após análise
-**Causa raiz**: O componente `CreditBalance` depende exclusivamente do Supabase Realtime para atualizar. O débito acontece no servidor (via service role na Edge Function), e a notificação Realtime pode não chegar ao cliente de forma confiável. Resultado: o saldo exibido fica "congelado" mesmo após o débito no banco.
+Quando os créditos acabam e o usuário tenta analisar um certificado, aparece um erro genérico ou nenhuma mensagem clara. O código atual tenta extrair a mensagem do erro, mas falha silenciosamente porque não importa o tipo correto de erro (`FunctionsHttpError`) do Supabase.
 
-**Solução**: Além do Realtime, expor uma função `refresh` no `CreditBalance` e chamá-la manualmente no `Dashboard` após cada análise concluída (sucesso ou erro de créditos). Isso garante que o saldo sempre reflita o valor real.
+## Solução
 
-### Bug 2: Erro genérico em vez de mensagem amigável
-**Causa raiz**: Quando a Edge Function retorna HTTP 402 (créditos insuficientes), o `supabase.functions.invoke()` trata como erro e coloca a resposta no objeto `error`, não em `data`. O código do Dashboard verifica `error` na linha 44 e mostra "Erro ao processar o certificado" sem ler a mensagem real que está dentro do erro.
+Duas melhorias:
 
-**Solução**: Extrair o corpo da resposta do objeto `error.context` (que é o Response HTTP original) para obter a mensagem amigável retornada pela Edge Function ("Créditos insuficientes. Adquira mais créditos para continuar.").
+### 1. Corrigir a extração da mensagem de erro
 
-### Bug 3: Saldo zerou após logout/login
-**Causa**: Isso é comportamento correto. O banco confirma 3 débitos realizados (3 créditos bônus - 3 usos = 0). O problema é que o usuário não viu os débitos acontecendo (Bug 1), então pareceu que zerou de repente.
+Importar `FunctionsHttpError` do Supabase e verificar o tipo do erro antes de tentar ler `error.context.json()`.
+
+### 2. Mostrar um alerta visual (não apenas um toast)
+
+Quando os créditos acabam, em vez de apenas um toast que desaparece, exibir um banner/alerta persistente na tela com um botão para comprar créditos. Isso incentiva a conversão.
 
 ## Arquivos Modificados
 
-### 1. `src/components/CreditBalance.tsx`
-- Exportar a função `fetchBalance` para que o Dashboard possa chamá-la
-- Usar `forwardRef` + `useImperativeHandle` para expor um método `refresh()`
-- Manter o Realtime como atualização secundária
+### `src/pages/Dashboard.tsx`
 
-### 2. `src/pages/Dashboard.tsx`
-- Criar uma `ref` para o `CreditBalance`
-- Após cada chamada ao `extract-certificate` (sucesso ou erro), chamar `creditBalanceRef.current?.refresh()`
-- Corrigir o tratamento de erro para ler a mensagem da Edge Function:
+- Importar `FunctionsHttpError` de `@supabase/supabase-js`
+- No tratamento de erro:
+  - Verificar se `error instanceof FunctionsHttpError`
+  - Se sim, ler `error.context.json()` para obter a mensagem real
+  - Detectar se é erro de créditos (status 402) e mostrar um estado visual especial
+- Adicionar um estado `showNoCreditsBanner` que exibe um alerta na tela com botão "Comprar Créditos"
 
-```text
-Antes:
-  if (error) -> toast genérico
-
-Depois:
-  if (error) -> tentar ler error.context.json() -> mostrar data.error
-  se não conseguir -> fallback para toast genérico
-```
-
-## Detalhes Técnicos
-
-### CreditBalance com ref
-
-```text
-const CreditBalance = forwardRef((props, ref) => {
-  const fetchBalance = async () => { ... };
-  
-  useImperativeHandle(ref, () => ({
-    refresh: fetchBalance
-  }));
-  
-  // ... resto do componente igual
-});
-```
-
-### Tratamento de erro no Dashboard
+### Lógica de erro atualizada
 
 ```text
 if (error) {
-  let errorMessage = 'Erro ao processar o certificado. Tente novamente.';
-  
-  // Tentar extrair mensagem amigável da resposta
-  try {
-    const errorBody = await error.context?.json();
-    if (errorBody?.error) {
-      errorMessage = errorBody.error;
+  if (error instanceof FunctionsHttpError) {
+    const errorBody = await error.context.json();
+    const msg = errorBody?.error || 'Erro ao processar';
+    
+    if (msg.includes('Créditos insuficientes') || msg.includes('créditos')) {
+      setShowNoCreditsBanner(true);  // Exibir banner visual
     }
-  } catch {}
-  
-  toast.error(errorMessage);
-  creditBalanceRef.current?.refresh(); // Atualizar saldo mesmo em erro
+    toast.error(msg);
+  } else {
+    toast.error('Erro ao processar o certificado.');
+  }
+  creditBalanceRef.current?.refresh();
   return;
 }
 ```
 
-### Refresh após sucesso
+### Banner de créditos insuficientes
+
+Exibido acima da area de upload quando `showNoCreditsBanner` e true:
 
 ```text
-// Após análise bem-sucedida
-toast.success(`${analyzed.length} corrida(s) analisada(s) com sucesso!`);
-creditBalanceRef.current?.refresh(); // Atualizar saldo
++--------------------------------------------------+
+|  Seus creditos acabaram!                         |
+|  Adquira mais creditos para continuar analisando |
+|  [Comprar Creditos]                              |
++--------------------------------------------------+
 ```
 
-## Resumo das Mudanças
+O banner usa o componente Alert existente com icone, texto e o dialogo BuyCreditsDialog integrado.
 
-| Arquivo | Mudança |
+## Resumo
+
+| Arquivo | Mudanca |
 |---------|---------|
-| `CreditBalance.tsx` | Adicionar forwardRef + useImperativeHandle para expor refresh() |
-| `Dashboard.tsx` | Criar ref, chamar refresh após análise, extrair mensagem de erro do context |
+| `Dashboard.tsx` | Importar FunctionsHttpError, corrigir parsing de erro, adicionar banner visual de creditos insuficientes |
 
-Nenhuma mudança no banco de dados ou nas Edge Functions é necessária -- a lógica do servidor está funcionando corretamente.
