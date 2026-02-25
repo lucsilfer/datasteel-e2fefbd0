@@ -1,46 +1,38 @@
 
 
-# Reforcar proibicao de mencionar CE numerico no parecer da IA
+# Trocar logo e favicon do DataSteel
 
-## Problema
+## Resumo
 
-Apesar da instrucao existente (linha 114-116) pedindo para nao mencionar o valor numerico do CE, o modelo continua citando "Carbono Equivalente de 0.56" no texto. Alem de redundante, o valor calculado pela IA (0.56) diverge do calculado pelo frontend (0.441), gerando confusao.
+Substituir o icone generico `FlaskConical` (lucide) pela imagem do logo DataSteel enviada, em todas as paginas e no favicon.
 
-## Causa
+## Alteracoes
 
-A instrucao atual e suave demais e esta posicionada longe das regras principais. O modelo a ignora em favor do padrao natural de "explicar o CE".
+### 1. Copiar a imagem para o projeto
 
-## Solucao
+- Copiar `user-uploads://Logo_Datasteel_2000 x 1000 px.png` para `public/logo-datasteel.png` (favicon e HTML)
+- Copiar tambem para `src/assets/logo-datasteel.png` (uso em componentes React via import)
 
-Reforcar a proibicao em dois pontos do prompt:
+### 2. Favicon (`index.html`)
 
-### 1. Na REGRA 2 (linha 97-116)
+Adicionar tag `<link rel="icon">` apontando para `/logo-datasteel.png`.
 
-Tornar a instrucao mais enfatica e posiciona-la imediatamente apos a definicao da formula, antes das faixas:
+### 3. Substituir FlaskConical pela imagem do logo em 6 arquivos:
 
-```
-REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
-CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
+| Arquivo | Local | Mudanca |
+|---------|-------|---------|
+| `src/pages/Landing.tsx` | Header (linha 37) | `<img src>` no lugar de `<FlaskConical>` |
+| `src/pages/Landing.tsx` | Hero (linha 53) | `<img src>` maior no lugar de `<FlaskConical>` |
+| `src/pages/Auth.tsx` | Header (linha 52) e formulario (linha 61) | `<img src>` no lugar de `<FlaskConical>` |
+| `src/pages/Dashboard.tsx` | Header (linha 128) | `<img src>` no lugar de `<FlaskConical>` |
+| `src/pages/Index.tsx` | Header (linha 61) | `<img src>` no lugar de `<FlaskConical>` |
+| `src/pages/Admin.tsx` | Header (linha 165) | `<img src>` no lugar de `<FlaskConical>` |
 
-PROIBIDO: Jamais cite o valor numerico do CE no texto do parecer.
-Nao escreva frases como "o CE e de 0.XX" ou "Carbono Equivalente de X".
-O valor ja e exibido na interface. Apenas use a faixa para definir o tom.
+Em cada caso, o `<FlaskConical>` sera substituido por uma tag `<img>` com o logo importado de `@/assets/logo-datasteel.png`, mantendo tamanhos proporcionais (h-6 nos headers, h-10 no hero da landing).
 
-E aplique a faixa correspondente:
-...
-```
+O import de `FlaskConical` sera removido dos arquivos onde nao for mais usado.
 
-### 2. Na secao final de regras (linha 122)
+### 4. PrintReport (`src/components/PrintReport.tsx`)
 
-Adicionar reforco explicito junto a regra de nao repetir valores:
-
-```
-- NAO repita valores numericos, percentuais, CE ou status ja visiveis nos outros campos
-```
-
-### Arquivo alterado
-
-`supabase/functions/extract-certificate/index.ts` — apenas o texto do prompt (linhas 97-122).
-
-Nenhum outro arquivo precisa ser alterado. A edge function sera reimplantada automaticamente.
+Se houver referencia ao icone no relatorio de impressao, tambem sera atualizado para usar a URL da imagem no `public/`.
 
