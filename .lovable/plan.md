@@ -1,46 +1,68 @@
 
-# Botao Imprimir Relatorio de Analise
+# Ajuste do Parecer IA com Base no CE (Carbono Equivalente)
 
 ## Resumo
 
-Adicionar um botao "Imprimir Relatorio" ao lado do botao "Nova Analise" no Dashboard. Ao clicar, uma nova janela sera aberta com um relatorio formatado para impressao contendo todas as informacoes da analise, com cabecalho, rodape e o mesmo padrao visual dos cards.
+Alterar o prompt da edge function `extract-certificate` para que o parecer tecnico (aiInsights) considere a faixa do Carbono Equivalente (CE) ao avaliar o material, complementando as regras ja existentes de HB sem gerar contradicoes.
 
-## Arquivos a criar/modificar
+## Logica atualizada do aiInsights
 
-### 1. Criar `src/components/PrintReport.tsx`
+O prompt sera reestruturado com 3 cenarios claros quando hbValue for null:
 
-Componente que recebe o array de `AnalysisResult` e gera o HTML do relatorio para impressao. Usara `window.open()` + `document.write()` para criar uma pagina de impressao dedicada.
+| Faixa CE | Orientacao |
+|----------|-----------|
+| CE <= 0,40 | Enfatizar excelentes caracteristicas para dobra, usinagem e solda. Material de facil processamento. |
+| 0,40 < CE <= 0,44 | Alertar que a dureza pode estar um pouco acima do habitual. Recomendar cuidados nos processos de dobra, usinagem e solda. |
+| CE > 0,44 | Enfatizar dureza elevada. Processos especiais necessarios: pre-aquecimento na soldagem, ferramentas especificas para usinagem, dobra a quente. |
 
-**Conteudo do relatorio:**
-- **Cabecalho**: Icone FlaskConical (como SVG inline) + "DataSteel" + subtitulo "Analise Inteligente de Certificados" + data/hora da consulta
-- **Para cada corrida**, um bloco visual replicando o card:
-  - Numero da corrida, material grade, dimensoes
-  - Badge CE com cor conforme status
-  - Badge HB (se existir)
-  - Gauge DS como barra horizontal (mais adequado para impressao que o circular)
-  - Grid com todos os elementos quimicos e seus status (com bolinhas coloridas)
-  - Secao Aplicabilidade (desgaste, dobra, usinagem/solda)
-  - Alerta tecnico (se existir)
-  - Parecer IA (se existir)
-- **Rodape**: "datasteel.com.br" + texto convite: "Analise seus certificados de aco com inteligencia artificial. Acesse datasteel.com.br e experimente gratuitamente."
+Quando hbValue for detectado, a regra existente permanece prioritaria (material tratado termicamente, improprio para processos convencionais).
 
-**Estilo**: CSS inline embutido na pagina de impressao, replicando as cores do sistema:
-- Verde (safe): `#16a34a`
-- Amarelo (warning): `#eab308`
-- Vermelho (critical): `#ef4444`
-- Azul primario: `#3b82f6`
-- Azul escuro (secondary/header): `hsl(215, 50%, 23%)`
-- Fundo cinza claro, cards brancos com borda
+## Prevencao de contradicoes
 
-### 2. Modificar `src/pages/Dashboard.tsx`
-
-- Importar o componente/funcao de impressao
-- Adicionar botao "Imprimir Relatorio" (icone `Printer`) ao lado de "Nova Analise" na barra de acoes dos resultados
+O prompt incluira uma regra explicita: quando hbValue estiver presente, o parecer sobre CE nao se aplica, pois o tratamento termico ja domina as propriedades mecanicas. Isso evita que a IA diga "excelente para dobra" em um aco com HB 400.
 
 ## Detalhes tecnicos
 
-A abordagem usara `window.open()` para criar uma janela separada com HTML/CSS dedicado a impressao. Isso garante:
-- Controle total do layout de impressao sem afetar a tela
-- CSS `@media print` para ocultar botoes e ajustar margens
-- Chamada automatica de `window.print()` apos carregar
-- Todas as abas (composicao, aplicabilidade, parecer IA) aparecerao expandidas no relatorio, sem tabs
+### Arquivo: `supabase/functions/extract-certificate/index.ts`
+
+Substituir o bloco do item 5 do prompt (linhas 87-99) pela nova versao com as 3 faixas de CE. A instrucao pedira que a IA calcule o CE internamente (C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15) para determinar a faixa e ajustar o tom do parecer.
+
+Trecho atualizado do prompt:
+
+```
+5. Um parecer tecnico (aiInsights) em portugues. Siga estas regras na ordem:
+
+   REGRA 1 - Se hbValue for detectado:
+   PRIORIZE o fato de ser um aco tratado termicamente.
+   Explique que a alta dureza (HB) altera completamente as propriedades mecanicas,
+   tornando o material improprio para dobra e usinagem convencional,
+   independentemente da composicao quimica aparentemente favoravel.
+   Indique as aplicacoes corretas (desgaste, mineracao, revestimentos).
+   NAO mencione recomendacoes de dobra, solda ou usinagem convencional.
+
+   REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
+   CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
+   E aplique a faixa correspondente:
+
+   a) CE <= 0,40: Enfatize que o material possui otimas caracteristicas
+      para dobra, usinagem e solda. Destaque a facilidade de processamento
+      e as aplicacoes praticas (estrutural, caldeiraria, etc).
+
+   b) CE entre 0,40 e 0,44: Alerte que o material pode apresentar dureza
+      um pouco acima do habitual para processos de dobra, usinagem e solda.
+      Recomende que alguns cuidados sejam tomados nestes processos.
+
+   c) CE acima de 0,44: Enfatize que o material possui dureza elevada e
+      podera ser dobrado, soldado e usinado somente por processos especiais,
+      como pre-aquecimento na soldagem, uso de ferramentas especificas
+      para usinagem e dobra a quente.
+
+   Em todos os casos da REGRA 2, NAO mencione tratamento termico, tempera
+   ou ausencia de HB. Foque na composicao quimica e seus efeitos praticos.
+
+   - Breve explicacao do papel dos elementos quimicos que se destacam
+   - NAO repita valores numericos, percentuais ou status ja visiveis nos outros campos
+   - Seja conciso (3-4 frases) e focado em informacoes uteis para tomada de decisao
+```
+
+Nenhum outro arquivo precisa ser alterado, pois a mudanca e exclusivamente no prompt enviado a IA.
