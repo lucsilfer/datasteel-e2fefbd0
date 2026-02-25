@@ -12,7 +12,7 @@ import BuyCreditsDialog from '@/components/BuyCreditsDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, LogOut, AlertTriangle } from 'lucide-react';
+import { FlaskConical, LogOut, AlertTriangle, RotateCcw } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -129,7 +129,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      <main className="container max-w-5xl mx-auto px-4 py-8 space-y-8">
+      <main className="container max-w-6xl mx-auto px-4 py-8 space-y-8">
         {showNoCreditsBanner && (
           <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
             <AlertTriangle className="h-5 w-5" />
@@ -147,11 +147,22 @@ const Dashboard = () => {
           </Alert>
         )}
 
-        <ImageUpload onFileSelected={handleFileSelected} onFileCleared={() => setResults([])} isLoading={isLoading} />
+        {results.length === 0 && (
+          <ImageUpload onFileSelected={handleFileSelected} onFileCleared={() => setResults([])} isLoading={isLoading} />
+        )}
 
         {results.length > 0 && (
           <div className="space-y-5 animate-fade-in">
             <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setResults([]); setShowNoCreditsBanner(false); }}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Nova Análise
+              </Button>
               <Separator className="flex-1" />
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
                 {results.length} corrida(s) analisada(s)
