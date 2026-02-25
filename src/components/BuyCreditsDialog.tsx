@@ -28,7 +28,7 @@ const PackageList = ({ loadingId, onBuy }: { loadingId: string | null; onBuy: (i
           key={pkg.id}
           onClick={() => onBuy(pkg.id)}
           disabled={loadingId !== null}
-          className={`relative flex items-center justify-between p-4 rounded-lg border transition-all hover:shadow-md ${
+          className={`relative w-full min-w-0 overflow-hidden flex items-center justify-between p-3 rounded-lg border transition-all hover:shadow-md ${
             pkg.popular
               ? 'border-primary bg-primary/5 hover:border-primary'
               : 'border-border hover:border-primary/50'
@@ -39,17 +39,17 @@ const PackageList = ({ loadingId, onBuy }: { loadingId: string | null; onBuy: (i
               Popular
             </span>
           )}
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="h-10 w-10 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
               <Coins className="h-5 w-5 text-primary" />
             </div>
-            <div className="text-left">
+            <div className="text-left min-w-0">
               <p className="font-semibold text-foreground">{pkg.credits} créditos</p>
               <p className="text-xs text-muted-foreground">{pkg.pricePerCredit}/crédito</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-foreground">{pkg.price}</span>
+          <div className="flex items-center gap-2 shrink-0 ml-2">
+            <span className="text-sm font-bold text-foreground">{pkg.price}</span>
             {loadingId === pkg.id ? (
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
             ) : (
@@ -113,7 +113,7 @@ const BuyCreditsDialog = ({ trigger }: BuyCreditsDialogProps) => {
     return (
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
-        <DrawerContent className="px-4 pb-6">
+        <DrawerContent className="px-4 pb-6 overflow-hidden">
           <DrawerHeader>
             <DrawerTitle>{headerContent}</DrawerTitle>
           </DrawerHeader>
