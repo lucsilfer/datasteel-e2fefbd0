@@ -1,62 +1,47 @@
 
+# Separar Aplicabilidade em 3 cards: Dobra, Usinagem e Solda
 
-# Aplicar regras de CE na Aplicabilidade (Dobra, Solda e Usinagem)
+## Resumo
 
-## Problema
+Remover o card de "Desgaste" da aba Aplicabilidade e separar "Usinagem / Solda" em dois cards distintos: um para Usinagem e outro para Solda. Ambos seguirao as mesmas faixas de CE.
 
-A aba "Aplicabilidade" usa criterios diferentes das faixas de CE:
-- Dobra avalia apenas Cr < 0.10 (ignora CE)
-- Solda avalia apenas CE < 0.40 (sem faixa intermediaria)
+## Alteracoes
 
-Isso gera contradicao: material com CE alto pode aparecer como "Excelente para Dobra".
+### 1. Tipo `AnalysisResult` (`src/types/index.ts`)
 
-## Solucao
+Substituir o campo `applicability` por:
 
-Substituir a logica nas linhas 93-100 de `src/utils/calculations.ts` pelas 3 faixas de CE:
-
-| Faixa CE | Dobra | Solda / Usinagem |
-|----------|-------|------------------|
-| CE <= 0,40 | Excelente para Dobra | Excelente Soldabilidade |
-| 0,40 < CE <= 0,44 | Requer cuidados na dobra | Requer cuidados na soldagem |
-| CE > 0,44 | Dobra somente a quente | Soldagem com pre-aquecimento |
-
-## Detalhe tecnico
-
-### Arquivo: `src/utils/calculations.ts` (linhas 93-100)
-
-Substituir:
 ```typescript
-const isGoodForWelding = ce < 0.40;
-const isGoodForBending = (extracted.elements.Cr || 0) < 0.10;
-
-applicability = {
-  wearResistance: 'Baixa resistência ao desgaste abrasivo.',
-  bendingAlert: isGoodForBending ? '✅ Excelente para Dobra' : '⚠️ Requer atenção na dobra',
-  machining: isGoodForWelding ? '✅ Excelente Soldabilidade' : '⚠️ Requer cuidados na soldagem'
+applicability?: {
+  bendingAlert: string | null;
+  machining: string;
+  welding: string;
 };
 ```
 
-Por:
-```typescript
-let bendingAlert: string;
-let machining: string;
+- Remove `wearResistance`
+- Adiciona `welding` separado de `machining`
 
-if (ce <= 0.40) {
-  bendingAlert = '✅ Excelente para Dobra';
-  machining = '✅ Excelente Soldabilidade';
-} else if (ce <= 0.44) {
-  bendingAlert = '⚠️ Requer cuidados na dobra';
-  machining = '⚠️ Requer cuidados na soldagem';
-} else {
-  bendingAlert = '🔴 Dobra somente a quente com processos especiais';
-  machining = '🔴 Soldagem somente com pré-aquecimento e processos especiais';
-}
+### 2. Logica de calculo (`src/utils/calculations.ts`)
 
-applicability = {
-  wearResistance: 'Baixa resistência ao desgaste abrasivo.',
-  bendingAlert,
-  machining
-};
-```
+Adicionar variavel `welding` junto a `bendingAlert` e `machining`, todas baseadas nas faixas de CE:
 
-Nenhum outro arquivo precisa ser alterado.
+| Faixa CE | Dobra | Usinagem | Solda |
+|----------|-------|----------|-------|
+| CE <= 0,40 | Excelente para Dobra | Excelente para Usinagem | Excelente Soldabilidade |
+| 0,40 < CE <= 0,44 | Requer cuidados na dobra | Requer cuidados na usinagem | Requer cuidados na soldagem |
+| CE > 0,44 | Dobra somente a quente | Usinagem com ferramentas especiais | Soldagem com pre-aquecimento |
+
+Remover `wearResistance` do objeto `applicability`.
+
+### 3. Card de Aplicabilidade (`src/components/AnalysisCard.tsx`)
+
+Substituir os 3 cards atuais (Desgaste, Dobra, Usinagem/Solda) por 3 novos cards:
+
+- **Dobra** (icone Shapes) - exibe `bendingAlert`
+- **Usinagem** (icone Wrench) - exibe `machining`
+- **Solda** (icone Flame) - exibe `welding`
+
+### 4. Relatorio de impressao (`src/components/PrintReport.tsx`)
+
+Atualizar para refletir os 3 campos sem `wearResistance`.
