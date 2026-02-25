@@ -48,7 +48,7 @@ const BuyCreditsDialog = ({ trigger }: BuyCreditsDialogProps) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <Button variant="outline" size="sm" className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5 text-secondary border-white/30 hover:bg-white/10 hover:text-secondary bg-white">
             <ShoppingCart className="h-4 w-4" />
             Comprar Créditos
           </Button>
