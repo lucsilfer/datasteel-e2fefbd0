@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Upload, Brain, BarChart3, FileCheck, Coins, Check } from 'lucide-react';
-import logo from '@/assets/logo-datasteel.png';
+import { FlaskConical, Upload, Brain, BarChart3, FileCheck, Coins, Check } from 'lucide-react';
 
 const features = [
   {
@@ -35,7 +34,7 @@ const Landing = () => {
       <header className="corporate-header text-white">
         <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
+            <FlaskConical className="h-6 w-6" />
             <span className="text-lg font-bold tracking-tight">DataSteel</span>
           </div>
           <Button
@@ -51,7 +50,7 @@ const Landing = () => {
       {/* Hero */}
       <main className="flex-1 flex flex-col items-center justify-center px-4 py-20">
         <div className="flex items-center gap-3 mb-6">
-          <img src={logo} alt="DataSteel" className="h-10 w-auto object-contain" />
+          <FlaskConical className="h-10 w-10 text-primary" />
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">DataSteel</h1>
         </div>
 

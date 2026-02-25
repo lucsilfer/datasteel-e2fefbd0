@@ -20,8 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Coins, Plus, Search, Loader2, ShieldBan, ShieldCheck } from 'lucide-react';
-import logo from '@/assets/logo-datasteel.png';
+import { FlaskConical, ArrowLeft, Users, Coins, Plus, Search, Loader2, ShieldBan, ShieldCheck } from 'lucide-react';
 
 interface UserRow {
   user_id: string;
@@ -163,7 +162,7 @@ const Admin = () => {
       <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
+            <FlaskConical className="h-6 w-6" />
             <div>
               <h1 className="text-lg font-bold tracking-tight">DataSteel Admin</h1>
               <p className="text-xs text-white/70">Painel Administrativo</p>

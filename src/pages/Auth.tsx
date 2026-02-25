@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
-import logo from '@/assets/logo-datasteel.png';
+import { FlaskConical, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Auth = () => {
@@ -50,7 +49,7 @@ const Auth = () => {
       <header className="corporate-header text-white">
         <div className="container max-w-6xl mx-auto flex items-center py-4 px-4">
           <div className="flex items-center gap-2">
-            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
+            <FlaskConical className="h-6 w-6" />
             <span className="text-lg font-bold tracking-tight">DataSteel</span>
           </div>
         </div>
@@ -59,7 +58,7 @@ const Auth = () => {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="corporate-card p-8 w-full max-w-md space-y-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
+            <FlaskConical className="h-6 w-6 text-primary" />
             <span className="text-xl font-bold text-primary">DataSteel</span>
           </div>
 
