@@ -1,0 +1,302 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { FlaskConical, ArrowLeft, Users, Coins, Plus, Search, Loader2 } from 'lucide-react';
+
+interface UserRow {
+  user_id: string;
+  email: string;
+  credit_balance: number;
+  created_at: string;
+}
+
+const Admin = () => {
+  const navigate = useNavigate();
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+  const [creditAmount, setCreditAmount] = useState('');
+  const [addingCredits, setAddingCredits] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    checkAdminAndLoad();
+  }, []);
+
+  const checkAdminAndLoad = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .maybeSingle();
+
+    if (!roleData) {
+      setIsAdmin(false);
+      return;
+    }
+
+    setIsAdmin(true);
+    await fetchUsers();
+  };
+
+  const fetchUsers = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.rpc('admin_list_users');
+
+    if (error) {
+      toast.error('Erro ao carregar usuários.');
+      console.error(error);
+    } else {
+      setUsers((data as UserRow[]) || []);
+    }
+    setLoading(false);
+  };
+
+  const handleAddCredits = async () => {
+    if (!selectedUser || !creditAmount) return;
+    const amount = parseInt(creditAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Informe um valor válido maior que 0.');
+      return;
+    }
+
+    setAddingCredits(true);
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const { data, error } = await supabase.rpc('admin_add_credits', {
+      p_target_user_id: selectedUser.user_id,
+      p_amount: amount,
+      p_admin_user_id: user!.id,
+    });
+
+    if (error) {
+      toast.error('Erro ao adicionar créditos: ' + error.message);
+    } else {
+      toast.success(`${amount} crédito(s) adicionado(s) para ${selectedUser.email}. Novo saldo: ${data}`);
+      setDialogOpen(false);
+      setCreditAmount('');
+      setSelectedUser(null);
+      await fetchUsers();
+    }
+    setAddingCredits(false);
+  };
+
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center space-y-4">
+            <p className="text-lg font-semibold text-destructive">Acesso negado</p>
+            <p className="text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+            <Button onClick={() => navigate('/dashboard')}>Voltar ao Dashboard</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const filteredUsers = users.filter(u =>
+    u.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="corporate-header text-white sticky top-0 z-50">
+        <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
+          <div className="flex items-center gap-3">
+            <FlaskConical className="h-6 w-6" />
+            <div>
+              <h1 className="text-lg font-bold tracking-tight">DataSteel Admin</h1>
+              <p className="text-xs text-white/70">Painel Administrativo</p>
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/10 hover:text-white"
+            onClick={() => navigate('/dashboard')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Dashboard
+          </Button>
+        </div>
+      </header>
+
+      <main className="container max-w-6xl mx-auto px-4 py-8 space-y-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Users className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{users.length}</p>
+                <p className="text-sm text-muted-foreground">Usuários cadastrados</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6 flex items-center gap-4">
+              <div className="h-12 w-12 rounded-lg bg-warning/10 flex items-center justify-center">
+                <Coins className="h-6 w-6 text-warning" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">
+                  {users.reduce((sum, u) => sum + u.credit_balance, 0)}
+                </p>
+                <p className="text-sm text-muted-foreground">Total de créditos em circulação</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Usuários</span>
+              <div className="relative w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar por email..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Email</TableHead>
+                      <TableHead className="text-center">Créditos</TableHead>
+                      <TableHead>Cadastro</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredUsers.map(user => (
+                      <TableRow key={user.user_id}>
+                        <TableCell className="font-medium">{user.email}</TableCell>
+                        <TableCell className="text-center">
+                          <span className="inline-flex items-center gap-1">
+                            <Coins className="h-3.5 w-3.5 text-warning" />
+                            {user.credit_balance}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Dialog open={dialogOpen && selectedUser?.user_id === user.user_id} onOpenChange={(open) => {
+                            setDialogOpen(open);
+                            if (!open) { setSelectedUser(null); setCreditAmount(''); }
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => { setSelectedUser(user); setDialogOpen(true); }}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" />
+                                Créditos
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-sm">
+                              <DialogHeader>
+                                <DialogTitle>Adicionar Créditos</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <p className="text-sm text-muted-foreground">
+                                  Usuário: <span className="font-medium text-foreground">{user.email}</span>
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  Saldo atual: <span className="font-semibold text-foreground">{user.credit_balance}</span>
+                                </p>
+                                <Input
+                                  type="number"
+                                  min={1}
+                                  placeholder="Quantidade de créditos"
+                                  value={creditAmount}
+                                  onChange={e => setCreditAmount(e.target.value)}
+                                />
+                                <Button
+                                  className="w-full"
+                                  onClick={handleAddCredits}
+                                  disabled={addingCredits || !creditAmount}
+                                >
+                                  {addingCredits ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                  ) : (
+                                    <Plus className="h-4 w-4 mr-2" />
+                                  )}
+                                  Adicionar
+                                </Button>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {filteredUsers.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                          Nenhum usuário encontrado.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    </div>
+  );
+};
+
+export default Admin;
