@@ -90,13 +90,24 @@ export const performTechnicalAnalysis = (
     const weightedScore = (scoreCE * 5) + (scoreC * 2) + (scoreMn * 2) + (scoreP * 0.5) + (scoreS * 0.5);
     compatibilityIndex = Math.round((weightedScore / 10) * 1000);
 
-    const isGoodForWelding = ce < 0.40;
-    const isGoodForBending = (extracted.elements.Cr || 0) < 0.10;
+    let bendingAlert: string;
+    let machining: string;
+
+    if (ce <= 0.40) {
+      bendingAlert = '✅ Excelente para Dobra';
+      machining = '✅ Excelente Soldabilidade';
+    } else if (ce <= 0.44) {
+      bendingAlert = '⚠️ Requer cuidados na dobra';
+      machining = '⚠️ Requer cuidados na soldagem';
+    } else {
+      bendingAlert = '🔴 Dobra somente a quente com processos especiais';
+      machining = '🔴 Soldagem somente com pré-aquecimento e processos especiais';
+    }
 
     applicability = {
       wearResistance: 'Baixa resistência ao desgaste abrasivo.',
-      bendingAlert: isGoodForBending ? '✅ Excelente para Dobra' : '⚠️ Requer atenção na dobra',
-      machining: isGoodForWelding ? '✅ Excelente Soldabilidade' : '⚠️ Requer cuidados na soldagem'
+      bendingAlert,
+      machining
     };
   }
 
