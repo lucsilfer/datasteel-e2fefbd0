@@ -49,6 +49,7 @@ export type Database = {
           balance: number
           created_at: string
           id: string
+          is_blocked: boolean
           updated_at: string
           user_id: string
         }
@@ -56,6 +57,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          is_blocked?: boolean
           updated_at?: string
           user_id: string
         }
@@ -63,6 +65,7 @@ export type Database = {
           balance?: number
           created_at?: string
           id?: string
+          is_blocked?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -108,8 +111,17 @@ export type Database = {
           created_at: string
           credit_balance: number
           email: string
+          is_blocked: boolean
           user_id: string
         }[]
+      }
+      admin_toggle_block_user: {
+        Args: {
+          p_admin_user_id: string
+          p_blocked: boolean
+          p_target_user_id: string
+        }
+        Returns: boolean
       }
       credit_user: {
         Args: { p_amount: number; p_mp_payment_id: string; p_user_id: string }
@@ -126,6 +138,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_blocked: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "user"

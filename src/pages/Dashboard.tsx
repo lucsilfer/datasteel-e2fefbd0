@@ -21,7 +21,19 @@ const Dashboard = () => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showNoCreditsBanner, setShowNoCreditsBanner] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const creditBalanceRef = useRef<CreditBalanceRef>(null);
+
+  useEffect(() => {
+    const checkBlocked = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase.rpc('is_user_blocked', { p_user_id: user.id });
+        if (data === true) setIsBlocked(true);
+      }
+    };
+    checkBlocked();
+  }, []);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -131,7 +143,16 @@ const Dashboard = () => {
       </header>
 
       <main className="container max-w-6xl mx-auto px-4 py-8 space-y-8">
-        {showNoCreditsBanner && (
+        {isBlocked && (
+          <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertTitle className="text-base font-semibold">Conta bloqueada</AlertTitle>
+            <AlertDescription>
+              Sua conta foi bloqueada pelo administrador. Entre em contato para mais informações.
+            </AlertDescription>
+          </Alert>
+        )}
+        {!isBlocked && showNoCreditsBanner && (
           <Alert variant="destructive" className="border-destructive/30 bg-destructive/5">
             <AlertTriangle className="h-5 w-5" />
             <AlertTitle className="text-base font-semibold">Seus créditos acabaram!</AlertTitle>
@@ -148,7 +169,7 @@ const Dashboard = () => {
           </Alert>
         )}
 
-        {results.length === 0 && (
+        {results.length === 0 && !isBlocked && (
           <ImageUpload onFileSelected={handleFileSelected} onFileCleared={() => setResults([])} isLoading={isLoading} />
         )}
 

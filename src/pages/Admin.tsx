@@ -20,13 +20,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { FlaskConical, ArrowLeft, Users, Coins, Plus, Search, Loader2 } from 'lucide-react';
+import { FlaskConical, ArrowLeft, Users, Coins, Plus, Search, Loader2, ShieldBan, ShieldCheck } from 'lucide-react';
 
 interface UserRow {
   user_id: string;
   email: string;
   credit_balance: number;
   created_at: string;
+  is_blocked: boolean;
 }
 
 const Admin = () => {
@@ -39,6 +40,7 @@ const Admin = () => {
   const [addingCredits, setAddingCredits] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [togglingBlock, setTogglingBlock] = useState<string | null>(null);
 
   useEffect(() => {
     checkAdminAndLoad();
@@ -107,6 +109,26 @@ const Admin = () => {
       await fetchUsers();
     }
     setAddingCredits(false);
+  };
+
+  const handleToggleBlock = async (user: UserRow) => {
+    setTogglingBlock(user.user_id);
+    const { data: { user: adminUser } } = await supabase.auth.getUser();
+    const newBlocked = !user.is_blocked;
+
+    const { error } = await supabase.rpc('admin_toggle_block_user', {
+      p_target_user_id: user.user_id,
+      p_admin_user_id: adminUser!.id,
+      p_blocked: newBlocked,
+    });
+
+    if (error) {
+      toast.error('Erro ao alterar status: ' + error.message);
+    } else {
+      toast.success(newBlocked ? `${user.email} foi bloqueado.` : `${user.email} foi desbloqueado.`);
+      await fetchUsers();
+    }
+    setTogglingBlock(null);
   };
 
   if (isAdmin === null) {
@@ -212,6 +234,7 @@ const Admin = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Email</TableHead>
+                      <TableHead className="text-center">Status</TableHead>
                       <TableHead className="text-center">Créditos</TableHead>
                       <TableHead>Cadastro</TableHead>
                       <TableHead className="text-right">Ações</TableHead>
@@ -222,6 +245,19 @@ const Admin = () => {
                       <TableRow key={user.user_id}>
                         <TableCell className="font-medium">{user.email}</TableCell>
                         <TableCell className="text-center">
+                          {user.is_blocked ? (
+                            <span className="inline-flex items-center gap-1 text-destructive text-xs font-semibold">
+                              <ShieldBan className="h-3.5 w-3.5" />
+                              Bloqueado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-green-600 text-xs font-semibold">
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              Ativo
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
                           <span className="inline-flex items-center gap-1">
                             <Coins className="h-3.5 w-3.5 text-warning" />
                             {user.credit_balance}
@@ -230,7 +266,22 @@ const Admin = () => {
                         <TableCell className="text-muted-foreground text-sm">
                           {new Date(user.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right space-x-2">
+                          <Button
+                            size="sm"
+                            variant={user.is_blocked ? "outline" : "destructive"}
+                            onClick={() => handleToggleBlock(user)}
+                            disabled={togglingBlock === user.user_id}
+                          >
+                            {togglingBlock === user.user_id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : user.is_blocked ? (
+                              <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                            ) : (
+                              <ShieldBan className="h-3.5 w-3.5 mr-1" />
+                            )}
+                            {user.is_blocked ? 'Desbloquear' : 'Bloquear'}
+                          </Button>
                           <Dialog open={dialogOpen && selectedUser?.user_id === user.user_id} onOpenChange={(open) => {
                             setDialogOpen(open);
                             if (!open) { setSelectedUser(null); setCreditAmount(''); }
@@ -283,7 +334,7 @@ const Admin = () => {
                     ))}
                     {filteredUsers.length === 0 && (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                           Nenhum usuário encontrado.
                         </TableCell>
                       </TableRow>
