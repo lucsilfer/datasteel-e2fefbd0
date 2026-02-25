@@ -1,46 +1,51 @@
 
+# Eliminar calculo de CE do prompt da IA
 
-# Reforcar proibicao de mencionar CE numerico no parecer da IA
+## Problema confirmado
 
-## Problema
+O certificado Usiminas (corrida 717721) tem:
+- C=0,06 | Mn=1,64 | Cr=0,18 | Mo=0,00 | V=0,005 | Cu=0,25 | Ni=0,27
+- CE correto (frontend): **0,405**
+- CE errado (IA): **0,59** — a IA usa formula diferente ou inclui elementos extras
 
-Apesar da instrucao existente (linha 114-116) pedindo para nao mencionar o valor numerico do CE, o modelo continua citando "Carbono Equivalente de 0.56" no texto. Alem de redundante, o valor calculado pela IA (0.56) diverge do calculado pelo frontend (0.441), gerando confusao.
-
-## Causa
-
-A instrucao atual e suave demais e esta posicionada longe das regras principais. O modelo a ignora em favor do padrao natural de "explicar o CE".
+A causa raiz: o prompt pede explicitamente "calcule o Carbono Equivalente (CE): CE = C + Mn/6 + ..." (linha 97-98). Isso incentiva a IA a calcular e citar o valor, mesmo com proibicoes.
 
 ## Solucao
 
-Reforcar a proibicao em dois pontos do prompt:
+Remover completamente a formula de CE e qualquer referencia a "Carbono Equivalente" do prompt. Substituir por instrucoes qualitativas baseadas nos elementos quimicos.
 
-### 1. Na REGRA 2 (linha 97-116)
+## Alteracao
 
-Tornar a instrucao mais enfatica e posiciona-la imediatamente apos a definicao da formula, antes das faixas:
+### Arquivo: `supabase/functions/extract-certificate/index.ts`
 
+Substituir linhas 97-128 (REGRA 2 inteira) por:
+
+```text
+REGRA 2 - Se hbValue for null:
+Avalie a composicao quimica de forma qualitativa.
+NAO calcule nem mencione Carbono Equivalente, CE ou qualquer indice numerico.
+O CE ja e calculado e exibido separadamente pela interface.
+
+Defina o tom do parecer com base na composicao:
+a) Se C <= 0,22 e Mn <= 1,00 e sem elementos de liga significativos:
+   Enfatize que o material possui otimas caracteristicas para dobra, usinagem e solda.
+   Destaque a facilidade de processamento e as aplicacoes praticas.
+
+b) Se C entre 0,22 e 0,25 ou Mn entre 1,00 e 1,40:
+   Alerte que o material pode requerer alguns cuidados nos processos
+   de dobra, usinagem e soldagem.
+
+c) Se C > 0,25 ou Mn > 1,40 ou presenca significativa de Cr/Mo:
+   Enfatize que processos especiais serao necessarios
+   (pre-aquecimento na soldagem, ferramentas especificas, dobra a quente).
+
+Em todos os casos:
+- Foque na composicao quimica e seus efeitos praticos
+- Breve explicacao do papel dos elementos que se destacam
+- NAO mencione tratamento termico, tempera ou ausencia de HB
+- NAO repita valores numericos, percentuais ou status ja visiveis nos outros campos
+- NAO calcule nem mencione CE, Carbono Equivalente ou qualquer indice
+- Seja conciso (3-4 frases) e focado em informacoes uteis para tomada de decisao
 ```
-REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
-CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
-
-PROIBIDO: Jamais cite o valor numerico do CE no texto do parecer.
-Nao escreva frases como "o CE e de 0.XX" ou "Carbono Equivalente de X".
-O valor ja e exibido na interface. Apenas use a faixa para definir o tom.
-
-E aplique a faixa correspondente:
-...
-```
-
-### 2. Na secao final de regras (linha 122)
-
-Adicionar reforco explicito junto a regra de nao repetir valores:
-
-```
-- NAO repita valores numericos, percentuais, CE ou status ja visiveis nos outros campos
-```
-
-### Arquivo alterado
-
-`supabase/functions/extract-certificate/index.ts` — apenas o texto do prompt (linhas 97-122).
 
 Nenhum outro arquivo precisa ser alterado. A edge function sera reimplantada automaticamente.
-
