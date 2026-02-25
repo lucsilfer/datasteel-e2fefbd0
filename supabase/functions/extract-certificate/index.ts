@@ -96,6 +96,11 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
 
    REGRA 2 - Se hbValue for null, calcule o Carbono Equivalente (CE):
    CE = C + Mn/6 + (Cr+Mo+V)/5 + (Cu+Ni)/15
+
+   PROIBIDO: Jamais cite o valor numérico do CE no texto do parecer.
+   Não escreva frases como "o CE é de 0.XX" ou "Carbono Equivalente de X".
+   O valor já é exibido na interface. Apenas use a faixa para definir o tom.
+
    E aplique a faixa correspondente:
 
    a) CE <= 0,40: Enfatize que o material possui ótimas características
@@ -119,7 +124,7 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
    ou ausência de HB. Foque na composição química e seus efeitos práticos.
 
    - Breve explicação do papel dos elementos químicos que se destacam
-   - NÃO repita valores numéricos, percentuais ou status já visíveis nos outros campos
+   - NÃO repita valores numéricos, percentuais, CE ou status já visíveis nos outros campos
    - Seja conciso (3-4 frases) e focado em informações úteis para tomada de decisão
 
 REGRAS IMPORTANTES:
