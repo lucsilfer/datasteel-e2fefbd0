@@ -151,13 +151,6 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
             {result.applicability ? (
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="flex items-start gap-3 bg-muted/50 rounded-md p-4 border border-border">
-                  <Flame className="h-5 w-5 mt-0.5 text-warning shrink-0" />
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Desgaste</p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.applicability.wearResistance}</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3 bg-muted/50 rounded-md p-4 border border-border">
                   <Shapes className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                   <div>
                     <p className="text-xs font-semibold text-foreground">Dobra</p>
@@ -167,8 +160,15 @@ const AnalysisCard: React.FC<AnalysisCardProps> = ({ result, index }) => {
                 <div className="flex items-start gap-3 bg-muted/50 rounded-md p-4 border border-border">
                   <Wrench className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                   <div>
-                    <p className="text-xs font-semibold text-foreground">Usinagem / Solda</p>
+                    <p className="text-xs font-semibold text-foreground">Usinagem</p>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.applicability.machining}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 bg-muted/50 rounded-md p-4 border border-border">
+                  <Flame className="h-5 w-5 mt-0.5 text-warning shrink-0" />
+                  <div>
+                    <p className="text-xs font-semibold text-foreground">Solda</p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{result.applicability.welding}</p>
                   </div>
                 </div>
               </div>

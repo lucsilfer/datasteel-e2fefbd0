@@ -60,18 +60,18 @@ export const performTechnicalAnalysis = (
   let compatibilityIndex = 0;
   let justification = '';
   let applicability = {
-    wearResistance: 'Material estrutural padrão.',
     bendingAlert: null as string | null,
-    machining: 'Usinagem padrão.'
+    machining: 'Usinagem padrão.',
+    welding: 'Soldabilidade padrão.'
   };
 
   if (extracted.hbValue !== null) {
     compatibilityIndex = 0;
     justification = 'Este material possui tratamento térmico de têmpera, tornando-o uma classe superior de resistência ao desgaste. Apesar da composição química poder parecer favorável, a alta dureza superficial resultará em sérios problemas de usinagem e risco de quebra na dobra se processado como um aço comum.';
     applicability = {
-      wearResistance: 'Ideal para revestimentos de calhas, bicas de mineração, caçambas de terraplenagem, equipamentos agrícolas e liners de misturadores.',
       bendingAlert: '⚠️ ALERTA CRÍTICO: Materiais com dureza acima de 250 HB possuem baixíssima ductilidade e alto risco de quebra catastrófica se submetidos a dobras com raios padrão.',
-      machining: 'Exigirá ferramentas de metal duro (pastilhas de Wídia) e velocidades de corte reduzidas devido à alta dureza superficial.'
+      machining: 'Exigirá ferramentas de metal duro (pastilhas de Wídia) e velocidades de corte reduzidas devido à alta dureza superficial.',
+      welding: '🔴 Soldagem não recomendada em materiais temperados sem processos especiais.'
     };
   } else {
     const scoreElement = (val: number | null, maxSafe: number, maxRange: number): number => {
@@ -92,22 +92,26 @@ export const performTechnicalAnalysis = (
 
     let bendingAlert: string;
     let machining: string;
+    let welding: string;
 
     if (ce <= 0.40) {
       bendingAlert = '✅ Excelente para Dobra';
-      machining = '✅ Excelente Soldabilidade';
+      machining = '✅ Excelente para Usinagem';
+      welding = '✅ Excelente Soldabilidade';
     } else if (ce <= 0.44) {
       bendingAlert = '⚠️ Requer cuidados na dobra';
-      machining = '⚠️ Requer cuidados na soldagem';
+      machining = '⚠️ Requer cuidados na usinagem';
+      welding = '⚠️ Requer cuidados na soldagem';
     } else {
       bendingAlert = '🔴 Dobra somente a quente com processos especiais';
-      machining = '🔴 Soldagem somente com pré-aquecimento e processos especiais';
+      machining = '🔴 Usinagem com ferramentas especiais';
+      welding = '🔴 Soldagem somente com pré-aquecimento e processos especiais';
     }
 
     applicability = {
-      wearResistance: 'Baixa resistência ao desgaste abrasivo.',
       bendingAlert,
-      machining
+      machining,
+      welding
     };
   }
 
