@@ -12,7 +12,8 @@ import BuyCreditsDialog from '@/components/BuyCreditsDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, LogOut, AlertTriangle, RotateCcw } from 'lucide-react';
+import { FlaskConical, LogOut, AlertTriangle, RotateCcw, Printer } from 'lucide-react';
+import { printReport } from '@/components/PrintReport';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -162,6 +163,15 @@ const Dashboard = () => {
               >
                 <RotateCcw className="h-4 w-4" />
                 Nova Análise
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => printReport(results)}
+                className="gap-2"
+              >
+                <Printer className="h-4 w-4" />
+                Imprimir Relatório
               </Button>
               <Separator className="flex-1" />
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">
