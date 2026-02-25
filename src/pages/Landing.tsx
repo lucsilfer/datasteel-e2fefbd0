@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, Upload, Brain, BarChart3, FileCheck } from 'lucide-react';
+import { FlaskConical, Upload, Brain, BarChart3, FileCheck, Coins, Check } from 'lucide-react';
 
 const features = [
   {
@@ -77,6 +77,46 @@ const Landing = () => {
                   <h3 className="font-semibold text-foreground mb-1">{f.title}</h3>
                   <p className="text-sm text-muted-foreground">{f.description}</p>
                 </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Pricing */}
+        <section className="mt-20 w-full max-w-4xl">
+          <h2 className="text-2xl font-bold text-foreground text-center mb-2">Planos de Créditos</h2>
+          <p className="text-muted-foreground text-center mb-8">Cada análise consome 1 crédito. Comece com 3 créditos grátis!</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {[
+              { credits: 10, price: 'R$ 9,90', perCredit: 'R$ 0,99' },
+              { credits: 50, price: 'R$ 39,90', perCredit: 'R$ 0,80', popular: true },
+              { credits: 100, price: 'R$ 69,90', perCredit: 'R$ 0,70' },
+            ].map((plan) => (
+              <div
+                key={plan.credits}
+                className={`corporate-card p-6 text-center relative ${plan.popular ? 'border-primary ring-1 ring-primary' : ''}`}
+              >
+                {plan.popular && (
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-3 py-1 rounded-full">
+                    Mais Popular
+                  </span>
+                )}
+                <div className="flex justify-center mb-3">
+                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Coins className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">{plan.credits}</h3>
+                <p className="text-sm text-muted-foreground mb-3">créditos</p>
+                <p className="text-xl font-bold text-foreground mb-1">{plan.price}</p>
+                <p className="text-xs text-muted-foreground mb-4">{plan.perCredit}/crédito</p>
+                <ul className="text-sm text-muted-foreground space-y-1.5 mb-5">
+                  <li className="flex items-center gap-1.5 justify-center"><Check className="h-3.5 w-3.5 text-safe" /> Cartão ou Pix</li>
+                  <li className="flex items-center gap-1.5 justify-center"><Check className="h-3.5 w-3.5 text-safe" /> Sem validade</li>
+                </ul>
+                <Button className="w-full" variant={plan.popular ? 'default' : 'outline'} onClick={() => navigate('/auth')}>
+                  Começar
+                </Button>
               </div>
             ))}
           </div>

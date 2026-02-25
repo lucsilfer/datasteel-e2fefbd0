@@ -1,19 +1,31 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { AnalysisResult } from '@/types';
 import { performTechnicalAnalysis } from '@/utils/calculations';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisCard from '@/components/AnalysisCard';
+import CreditBalance from '@/components/CreditBalance';
+import BuyCreditsDialog from '@/components/BuyCreditsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { FlaskConical, LogOut } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const payment = searchParams.get('payment');
+    if (payment === 'success') {
+      toast.success('Pagamento aprovado! Seus créditos foram adicionados.');
+    } else if (payment === 'failure') {
+      toast.error('Pagamento não concluído. Tente novamente.');
+    }
+  }, [searchParams]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -68,10 +80,14 @@ const Dashboard = () => {
               <p className="text-xs text-white/70">Análise inteligente de certificados</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-3">
+            <CreditBalance />
+            <BuyCreditsDialog />
+            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 

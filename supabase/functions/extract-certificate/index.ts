@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,6 +14,42 @@ serve(async (req) => {
   try {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Authenticate user and check credits
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+    const authHeader = req.headers.get("Authorization");
+    let userId: string | null = null;
+
+    if (authHeader) {
+      const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+        global: { headers: { Authorization: authHeader } },
+      });
+      const { data: { user } } = await supabaseAuth.auth.getUser();
+      userId = user?.id ?? null;
+    }
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Não autenticado. Faça login para continuar." }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Check and debit credit using service role
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+    const { data: debitResult, error: debitError } = await supabaseAdmin.rpc("debit_credit", {
+      p_user_id: userId,
+    });
+
+    if (debitError || debitResult === -1) {
+      return new Response(JSON.stringify({ error: "Créditos insuficientes. Adquira mais créditos para continuar." }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { base64Image, mimeType } = await req.json();
     if (!base64Image) {
