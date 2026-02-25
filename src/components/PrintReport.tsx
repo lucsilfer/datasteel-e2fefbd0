@@ -101,7 +101,7 @@ export function printReport(results: AnalysisResult[]) {
         <!-- DS Bar -->
         <div style="margin-bottom:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-            <span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Data Score (DS)</span>
+            <span style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;">Data Score</span>
             <span style="font-size:18px;font-weight:800;font-family:monospace;color:${dsColor};">${r.compatibilityIndex}</span>
           </div>
           <div style="background:#f1f5f9;border-radius:6px;height:12px;overflow:hidden;">

@@ -43,7 +43,7 @@ const CircularGauge: React.FC<{ value: number }> = ({ value }) => {
       <div className="absolute flex flex-col items-center">
         <span className="text-xl font-bold font-mono tabular-nums text-foreground">{value}</span>
       </div>
-      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">DS</p>
+      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mt-1">Data Score</p>
     </div>
   );
 };
