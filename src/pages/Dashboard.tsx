@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +6,7 @@ import { AnalysisResult } from '@/types';
 import { performTechnicalAnalysis } from '@/utils/calculations';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisCard from '@/components/AnalysisCard';
-import CreditBalance from '@/components/CreditBalance';
+import CreditBalance, { CreditBalanceRef } from '@/components/CreditBalance';
 import BuyCreditsDialog from '@/components/BuyCreditsDialog';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const creditBalanceRef = useRef<CreditBalanceRef>(null);
 
   useEffect(() => {
     const payment = searchParams.get('payment');
@@ -43,7 +44,15 @@ const Dashboard = () => {
 
       if (error) {
         console.error('Edge function error:', error);
-        toast.error('Erro ao processar o certificado. Tente novamente.');
+        let errorMessage = 'Erro ao processar o certificado. Tente novamente.';
+        try {
+          const errorBody = await error.context?.json();
+          if (errorBody?.error) {
+            errorMessage = errorBody.error;
+          }
+        } catch {}
+        toast.error(errorMessage);
+        creditBalanceRef.current?.refresh();
         return;
       }
 
@@ -61,6 +70,7 @@ const Dashboard = () => {
       const analyzed = heats.map((heat: any) => performTechnicalAnalysis(heat));
       setResults(analyzed);
       toast.success(`${analyzed.length} corrida(s) analisada(s) com sucesso!`);
+      creditBalanceRef.current?.refresh();
     } catch (err) {
       console.error('Error:', err);
       toast.error('Erro inesperado. Verifique sua conexão.');
@@ -81,7 +91,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <CreditBalance />
+            <CreditBalance ref={creditBalanceRef} />
             <BuyCreditsDialog />
             <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
