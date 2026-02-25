@@ -111,6 +111,10 @@ Para CADA corrida encontrada (identificada por termos como "Corrida", "Heat" ou 
       como pré-aquecimento na soldagem, uso de ferramentas específicas
       para usinagem e dobra a quente.
 
+   NÃO mencione o valor numérico do CE no parecer, pois ele já é calculado
+   e exibido separadamente na interface. Apenas aplique a faixa correspondente
+   para definir o tom da análise.
+
    Em todos os casos da REGRA 2, NÃO mencione tratamento térmico, têmpera
    ou ausência de HB. Foque na composição química e seus efeitos práticos.
 
