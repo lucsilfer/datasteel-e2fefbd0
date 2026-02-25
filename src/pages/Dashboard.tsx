@@ -12,7 +12,8 @@ import BuyCreditsDialog from '@/components/BuyCreditsDialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, LogOut, AlertTriangle, RotateCcw, Printer } from 'lucide-react';
+import { LogOut, AlertTriangle, RotateCcw, Printer } from 'lucide-react';
+import logo from '@/assets/logo-datasteel.png';
 import { printReport } from '@/components/PrintReport';
 
 const Dashboard = () => {
@@ -125,7 +126,7 @@ const Dashboard = () => {
       <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6" />
+            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
             <div>
               <h1 className="text-lg font-bold tracking-tight">DataSteel</h1>
               <p className="text-xs text-white/70">Análise inteligente de certificados</p>

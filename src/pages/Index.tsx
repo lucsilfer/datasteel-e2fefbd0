@@ -6,7 +6,7 @@ import { performTechnicalAnalysis } from '@/utils/calculations';
 import ImageUpload from '@/components/ImageUpload';
 import AnalysisCard from '@/components/AnalysisCard';
 import { Separator } from '@/components/ui/separator';
-import { FlaskConical } from 'lucide-react';
+import logo from '@/assets/logo-datasteel.png';
 
 const Index = () => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
@@ -58,7 +58,7 @@ const Index = () => {
       <header className="sticky top-0 z-50 glass-card rounded-none border-x-0 border-t-0">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6 text-primary" />
+            <img src={logo} alt="DataSteel" className="h-6 w-auto object-contain" />
             <div>
               <h1 className="text-lg font-bold tracking-tight text-gradient">DataSteel</h1>
               <p className="text-xs text-muted-foreground">Análise inteligente de certificados</p>
