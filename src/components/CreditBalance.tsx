@@ -27,18 +27,22 @@ const CreditBalance = forwardRef<CreditBalanceRef>((_, ref) => {
   }));
 
   useEffect(() => {
-    fetchBalance();
-
-    const channel = supabase
-      .channel('credit-balance')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'user_credits',
-      }, () => fetchBalance())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      await fetchBalance();
+      channel = supabase
+        .channel(`credit-balance-${user.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'user_credits',
+          filter: `user_id=eq.${user.id}`,
+        }, () => fetchBalance())
+        .subscribe();
+    })();
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, []);
 
   if (balance === null) return null;
