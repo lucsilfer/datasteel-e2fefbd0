@@ -1,12 +1,35 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const ALLOWED_ORIGINS = [
+  'https://datasteel.lovable.app',
+  'https://datasteel.com.br',
+  'https://www.datasteel.com.br',
+  'https://id-preview--2cc2d68c-89d0-4f2f-9b12-db6b1a173e7f.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function buildCorsHeaders(origin: string | null) {
+  const allowed = origin && (ALLOWED_ORIGINS.includes(origin) || /\.lovable\.app$/.test(new URL(origin).hostname))
+    ? origin
+    : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Vary': 'Origin',
+  };
+}
+
+const InputSchema = z.object({
+  base64Image: z.string().min(100).max(15_000_000),
+  mimeType: z.enum(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'application/pdf']).optional(),
+});
 
 serve(async (req) => {
+  const corsHeaders = buildCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -15,7 +38,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Authenticate user and check credits
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -38,7 +60,6 @@ serve(async (req) => {
       });
     }
 
-    // Check and debit credit using service role
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
     const { data: debitResult, error: debitError } = await supabaseAdmin.rpc("debit_credit", {
       p_user_id: userId,
@@ -50,19 +71,31 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const { base64Image, mimeType } = await req.json();
-    if (!base64Image) {
-      return new Response(JSON.stringify({ error: "No file provided" }), {
-        status: 400,
+    if (debitResult === -2) {
+      return new Response(JSON.stringify({ error: "Sua conta está bloqueada. Entre em contato com o administrador." }), {
+        status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Extract raw base64 data (remove data URL prefix if present)
+    let payload: unknown;
+    try {
+      payload = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Requisição inválida" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const parsed = InputSchema.safeParse(payload);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Arquivo inválido ou tipo não suportado" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { base64Image, mimeType } = parsed.data;
+
     const imageData = base64Image.includes(",") ? base64Image.split(",")[1] : base64Image;
-    
-    // Detect mime type from data URL or use provided mimeType
+
     let detectedMime = mimeType || "image/jpeg";
     if (!mimeType && base64Image.includes(",")) {
       const match = base64Image.match(/^data:([^;]+);/);
@@ -138,10 +171,7 @@ Retorne os dados usando a função extract_heats.`;
           {
             role: "user",
             content: [
-              {
-                type: "image_url",
-                image_url: { url: `data:${detectedMime};base64,${imageData}` },
-              },
+              { type: "image_url", image_url: { url: `data:${detectedMime};base64,${imageData}` } },
               { type: "text", text: prompt },
             ],
           },
@@ -200,39 +230,33 @@ Retorne os dados usando a função extract_heats.`;
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Tente novamente em alguns instantes." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Limite temporário atingido. Tente novamente em alguns instantes." }), {
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Créditos insuficientes. Adicione créditos ao workspace." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        return new Response(JSON.stringify({ error: "Serviço de IA indisponível no momento." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("AI gateway error:", response.status);
       return new Response(JSON.stringify({ error: "Erro ao processar arquivo" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const data = await response.json();
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    
+
     if (!toolCall) {
-      console.error("No tool call in response:", JSON.stringify(data));
+      console.error("No tool call in response");
       return new Response(JSON.stringify({ error: "Não foi possível extrair dados do certificado" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const extracted = JSON.parse(toolCall.function.arguments);
 
-    // Deterministic post-processing: remove any CE/Carbon Equivalent mentions
     extracted.heats.forEach((h: { aiInsights?: string; hbValue?: number | null; materialGrade?: string }) => {
       if (h.aiInsights) {
         h.aiInsights = h.aiInsights
@@ -240,12 +264,9 @@ Retorne os dados usando a função extract_heats.`;
           .replace(/\s{2,}/g, ' ')
           .trim();
       }
-      // Fallback: extract HB from materialGrade if AI missed it
       if ((h.hbValue === null || h.hbValue === undefined) && h.materialGrade) {
         const hbMatch = h.materialGrade.match(/HB[- ]?(\d{2,3})/i);
-        if (hbMatch) {
-          h.hbValue = parseInt(hbMatch[1], 10);
-        }
+        if (hbMatch) h.hbValue = parseInt(hbMatch[1], 10);
       }
     });
 
@@ -254,9 +275,8 @@ Retorne os dados usando a função extract_heats.`;
     });
   } catch (error) {
     console.error("Extract certificate error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ error: "Erro ao processar a requisição" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });
