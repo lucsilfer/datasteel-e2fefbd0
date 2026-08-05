@@ -1,28 +1,34 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, Upload, Brain, BarChart3, FileCheck, Coins, Check } from 'lucide-react';
+import { FlaskConical, Upload, Brain, BarChart3, FileCheck, Coins, Check, ArrowRight, Zap } from 'lucide-react';
 
 const features = [
   {
     icon: Upload,
-    title: 'Upload de Certificados',
-    description: 'Envie fotos ou PDFs de certificados de qualidade para análise instantânea.',
+    title: 'Envie e pronto',
+    description: 'Foto ou PDF do certificado. Sem planilha, sem digitar composição química na mão.',
   },
   {
     icon: Brain,
-    title: 'Análise por IA',
-    description: 'Extração automática de composição química via inteligência artificial.',
+    title: 'IA que lê o certificado por você',
+    description: 'Composição química extraída automaticamente, sem erro de leitura ou de digitação.',
   },
   {
     icon: BarChart3,
-    title: 'Compatibilidade A36',
-    description: 'Índice ponderado de similaridade com ASTM A36 baseado na composição química do material.',
+    title: 'Saiba na hora se o material serve',
+    description: 'Índice de compatibilidade com ASTM A36 calculado na hora — decisão de compra em segundos, não em horas.',
   },
   {
     icon: FileCheck,
-    title: 'Parecer Técnico',
-    description: 'Avaliação de aplicabilidade utilizando ferramentas de inteligência artificial.',
+    title: 'Parecer técnico, não achismo',
+    description: 'Recomendação de dobra, solda e usinagem gerada por IA, sem depender da agenda de um engenheiro.',
   },
+];
+
+const steps = [
+  { number: '1', title: 'Envie o certificado', description: 'Foto ou PDF, direto do celular ou computador.' },
+  { number: '2', title: 'A IA analisa', description: 'Composição, CE e compatibilidade calculados em segundos.' },
+  { number: '3', title: 'Você decide', description: 'Compra, vende ou recusa o lote com parecer técnico em mãos.' },
 ];
 
 const Landing = () => {
@@ -44,24 +50,60 @@ const Landing = () => {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20">
+      <main className="flex-1 flex flex-col items-center px-4 py-20">
         <div className="flex flex-col items-center">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground text-center">DataSteel</h1>
+          <div className="flex items-center gap-2 mb-6">
+            <FlaskConical className="h-5 w-5 text-primary" />
+            <span className="text-sm font-semibold text-muted-foreground tracking-tight">DataSteel</span>
+          </div>
 
-          <p className="text-xl md:text-2xl text-foreground text-center max-w-2xl mt-4 mb-4 font-medium">
-            Análise química inteligente para reclassificação de chapas de aço
-          </p>
-          <p className="text-muted-foreground text-center max-w-xl mb-10">
-            Transforme certificados de qualidade em insights técnicos para materiais de desvio NTU, NRU, NIR, QC
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground text-center max-w-3xl leading-[1.1]">
+            Pare de perder dinheiro classificando aço no olho
+          </h1>
+
+          <p className="text-lg md:text-xl text-muted-foreground text-center max-w-2xl mt-6 mb-8">
+            Envie o certificado de material de desvio (NTU, NRU, NIR, QC) e receba composição química, compatibilidade com ASTM A36 e parecer técnico — em segundos, não em horas.
           </p>
 
-          <Button size="lg" className="text-base px-8 py-6" onClick={() => navigate('/auth')}>
-            Acessar Plataforma
-          </Button>
+          <div className="flex flex-col items-center gap-4">
+            <Button size="lg" className="text-base px-8 py-6 gap-2" onClick={() => navigate('/auth')}>
+              Analisar meu primeiro certificado grátis
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-safe" /> 3 análises grátis</span>
+              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-safe" /> Sem cartão de crédito</span>
+              <span className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-safe" /> Resultado em segundos</span>
+            </div>
+          </div>
         </div>
 
+        {/* How it works */}
+        <section className="mt-24 w-full max-w-4xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-5">
+            {steps.map((step, i) => (
+              <div key={step.number} className="flex sm:flex-col items-start sm:items-center gap-4 sm:gap-3 sm:text-center relative">
+                <div className="h-10 w-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold shrink-0">
+                  {step.number}
+                </div>
+                <div>
+                  <h3 className="font-semibold text-foreground">{step.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+                </div>
+                {i < steps.length - 1 && (
+                  <ArrowRight className="hidden sm:block absolute top-5 -right-7 h-4 w-4 text-muted-foreground/40" />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* Features */}
-        <section className="mt-20 w-full max-w-4xl">
+        <section className="mt-24 w-full max-w-4xl">
+          <h2 className="text-2xl font-bold text-foreground text-center mb-2">Feito para quem decide sob pressão</h2>
+          <p className="text-muted-foreground text-center mb-10 max-w-xl mx-auto">
+            Cada minuto parado com um lote de desvio é dinheiro parado no pátio. O DataSteel tira a decisão do achismo.
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {features.map((f) => (
               <div key={f.title} className="corporate-card p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
@@ -78,9 +120,9 @@ const Landing = () => {
         </section>
 
         {/* Pricing */}
-        <section className="mt-20 w-full max-w-4xl">
-          <h2 className="text-2xl font-bold text-foreground text-center mb-2">Planos de Créditos</h2>
-          <p className="text-muted-foreground text-center mb-8">Cada análise consome 1 crédito. Comece com 3 créditos grátis!</p>
+        <section className="mt-24 w-full max-w-4xl">
+          <h2 className="text-2xl font-bold text-foreground text-center mb-2">Sem mensalidade. Pague só o que analisar</h2>
+          <p className="text-muted-foreground text-center mb-8">Cada análise consome 1 crédito. Comece com 3 créditos grátis — sem cartão.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
               { credits: 10, price: 'R$ 9,90', perCredit: 'R$ 0,99' },
@@ -114,6 +156,27 @@ const Landing = () => {
                 </Button>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Final CTA */}
+        <section className="mt-24 w-full max-w-3xl">
+          <div className="corporate-card p-10 text-center bg-primary/[0.03] border-primary/20">
+            <div className="flex justify-center mb-4">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Zap className="h-6 w-6 text-primary" />
+              </div>
+            </div>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-3">
+              Seu próximo lote de desvio não precisa esperar
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Crie sua conta grátis e analise seu primeiro certificado agora mesmo. Sem cartão, sem compromisso.
+            </p>
+            <Button size="lg" className="text-base px-8 py-6 gap-2" onClick={() => navigate('/auth')}>
+              Criar conta grátis
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
         </section>
       </main>
