@@ -31,32 +31,21 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="corporate-header text-white sticky top-0 z-50">
+      <header className="corporate-header sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-2.5">
-            <FlaskConical className="h-5 w-5 text-primary-foreground/90" />
-            <span className="text-base font-semibold tracking-[0.02em]">DataSteel</span>
+            <FlaskConical className="h-5 w-5 text-primary" />
+            <span className="text-base font-semibold tracking-tight text-foreground">DataSteel</span>
           </div>
-          <Button
-            size="sm"
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
-            onClick={() => navigate('/auth')}
-          >
+          <Button size="sm" onClick={() => navigate('/auth')}>
             Entrar
           </Button>
         </div>
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black_40%,transparent_100%)] pointer-events-none" />
-
-        <div className="relative flex flex-col items-center">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-6">
-            <FlaskConical className="h-3.5 w-3.5" />
-            Análise metalúrgica assistida por IA
-          </span>
-
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20">
+        <div className="flex flex-col items-center">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground text-center">DataSteel</h1>
 
           <p className="text-xl md:text-2xl text-foreground text-center max-w-2xl mt-4 mb-4 font-medium">
@@ -72,11 +61,11 @@ const Landing = () => {
         </div>
 
         {/* Features */}
-        <section className="relative mt-20 w-full max-w-4xl">
+        <section className="mt-20 w-full max-w-4xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {features.map((f) => (
-              <div key={f.title} className="corporate-card p-6 flex gap-4 items-start border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-md transition-all">
-                <div className="rounded-md bg-primary/10 p-2.5 shrink-0">
+              <div key={f.title} className="corporate-card p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
+                <div className="rounded-lg bg-primary/10 p-2.5 shrink-0">
                   <f.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -89,7 +78,7 @@ const Landing = () => {
         </section>
 
         {/* Pricing */}
-        <section className="relative mt-20 w-full max-w-4xl">
+        <section className="mt-20 w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-foreground text-center mb-2">Planos de Créditos</h2>
           <p className="text-muted-foreground text-center mb-8">Cada análise consome 1 crédito. Comece com 3 créditos grátis!</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">

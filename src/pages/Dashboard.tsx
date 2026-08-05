@@ -117,21 +117,21 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="corporate-header text-white sticky top-0 z-50">
+      <header className="corporate-header sticky top-0 z-50">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-md bg-white/10 flex items-center justify-center shrink-0">
-              <FlaskConical className="h-5 w-5" />
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <FlaskConical className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-base font-semibold tracking-[0.02em]">DataSteel</h1>
-              <p className="text-xs text-white/60">Análise inteligente de certificados</p>
+              <h1 className="text-base font-semibold tracking-tight text-foreground">DataSteel</h1>
+              <p className="text-xs text-muted-foreground">Análise inteligente de certificados</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <CreditBalance ref={creditBalanceRef} />
             <BuyCreditsDialog />
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 hover:text-white" onClick={handleLogout}>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
               Sair
             </Button>

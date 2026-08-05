@@ -46,11 +46,11 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="corporate-header text-white">
+      <header className="corporate-header">
         <div className="container max-w-6xl mx-auto flex items-center py-4 px-4">
           <div className="flex items-center gap-2.5">
-            <FlaskConical className="h-5 w-5 text-primary-foreground/90" />
-            <span className="text-base font-semibold tracking-[0.02em]">DataSteel</span>
+            <FlaskConical className="h-5 w-5 text-primary" />
+            <span className="text-base font-semibold tracking-tight text-foreground">DataSteel</span>
           </div>
         </div>
       </header>
