@@ -20,6 +20,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { FlaskConical, ArrowLeft, Users, Coins, Plus, Search, Loader2, ShieldBan, ShieldCheck } from 'lucide-react';
 
 interface UserRow {
@@ -91,12 +102,10 @@ const Admin = () => {
     }
 
     setAddingCredits(true);
-    const { data: { user } } = await supabase.auth.getUser();
 
     const { data, error } = await supabase.rpc('admin_add_credits', {
       p_target_user_id: selectedUser.user_id,
       p_amount: amount,
-      p_admin_user_id: user!.id,
     });
 
     if (error) {
@@ -113,12 +122,10 @@ const Admin = () => {
 
   const handleToggleBlock = async (user: UserRow) => {
     setTogglingBlock(user.user_id);
-    const { data: { user: adminUser } } = await supabase.auth.getUser();
     const newBlocked = !user.is_blocked;
 
     const { error } = await supabase.rpc('admin_toggle_block_user', {
       p_target_user_id: user.user_id,
-      p_admin_user_id: adminUser!.id,
       p_blocked: newBlocked,
     });
 
@@ -268,21 +275,46 @@ const Admin = () => {
                           {new Date(user.created_at).toLocaleDateString('pt-BR')}
                         </TableCell>
                         <TableCell className="text-right space-x-2">
-                          <Button
-                            size="sm"
-                            variant={user.is_blocked ? "outline" : "destructive"}
-                            onClick={() => handleToggleBlock(user)}
-                            disabled={togglingBlock === user.user_id}
-                          >
-                            {togglingBlock === user.user_id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : user.is_blocked ? (
-                              <ShieldCheck className="h-3.5 w-3.5 mr-1" />
-                            ) : (
-                              <ShieldBan className="h-3.5 w-3.5 mr-1" />
-                            )}
-                            {user.is_blocked ? 'Desbloquear' : 'Bloquear'}
-                          </Button>
+                          {user.is_blocked ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleToggleBlock(user)}
+                              disabled={togglingBlock === user.user_id}
+                            >
+                              {togglingBlock === user.user_id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                              ) : (
+                                <ShieldCheck className="h-3.5 w-3.5 mr-1" />
+                              )}
+                              Desbloquear
+                            </Button>
+                          ) : (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="destructive" disabled={togglingBlock === user.user_id}>
+                                  {togglingBlock === user.user_id ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                                  ) : (
+                                    <ShieldBan className="h-3.5 w-3.5 mr-1" />
+                                  )}
+                                  Bloquear
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Bloquear usuário?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    <span className="font-medium text-foreground">{user.email}</span> não vai mais conseguir analisar certificados até ser desbloqueado.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleToggleBlock(user)}>Bloquear</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                           <Dialog open={dialogOpen && selectedUser?.user_id === user.user_id} onOpenChange={(open) => {
                             setDialogOpen(open);
                             if (!open) { setSelectedUser(null); setCreditAmount(''); }

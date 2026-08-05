@@ -26,11 +26,8 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkBlocked = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase.rpc('is_user_blocked', { p_user_id: user.id });
-        if (data === true) setIsBlocked(true);
-      }
+      const { data } = await supabase.rpc('is_user_blocked');
+      if (data === true) setIsBlocked(true);
     };
     checkBlocked();
   }, []);
@@ -118,22 +115,22 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <header className="corporate-header sticky top-0 z-50">
-        <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
-          <div className="flex items-center gap-3">
+        <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4 gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
               <FlaskConical className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <h1 className="text-base font-semibold tracking-tight text-foreground">DataSteel</h1>
-              <p className="text-xs text-muted-foreground">Análise inteligente de certificados</p>
+            <div className="min-w-0">
+              <h1 className="text-base font-semibold tracking-tight text-foreground truncate">DataSteel</h1>
+              <p className="text-xs text-muted-foreground hidden sm:block">Análise inteligente de certificados</p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <CreditBalance ref={creditBalanceRef} />
             <BuyCreditsDialog />
             <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
+              <LogOut className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Sair</span>
             </Button>
           </div>
         </div>

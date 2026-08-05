@@ -50,7 +50,7 @@ const BuyCreditsDialog = ({ trigger }: BuyCreditsDialogProps) => {
         {trigger || (
           <Button variant="outline" size="sm" className="gap-1.5">
             <ShoppingCart className="h-4 w-4" />
-            Comprar Créditos
+            <span className="hidden sm:inline">Comprar Créditos</span>
           </Button>
         )}
       </DialogTrigger>

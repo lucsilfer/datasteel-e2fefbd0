@@ -119,10 +119,6 @@
   .corporate-header {
     @apply bg-background/90 backdrop-blur border-b border-border;
   }
-
-  .text-gradient {
-    @apply text-primary font-bold;
-  }
 }
 
 @layer utilities {
