@@ -120,10 +120,12 @@ const Dashboard = () => {
       <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-5xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6" />
+            <div className="h-9 w-9 rounded-md bg-white/10 flex items-center justify-center shrink-0">
+              <FlaskConical className="h-5 w-5" />
+            </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight">DataSteel</h1>
-              <p className="text-xs text-white/70">Análise inteligente de certificados</p>
+              <h1 className="text-base font-semibold tracking-[0.02em]">DataSteel</h1>
+              <p className="text-xs text-white/60">Análise inteligente de certificados</p>
             </div>
           </div>
           <div className="flex items-center gap-3">

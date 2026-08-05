@@ -31,11 +31,11 @@ const Landing = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="corporate-header text-white">
+      <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
-          <div className="flex items-center gap-2">
-            <FlaskConical className="h-6 w-6" />
-            <span className="text-lg font-bold tracking-tight">DataSteel</span>
+          <div className="flex items-center gap-2.5">
+            <FlaskConical className="h-5 w-5 text-primary-foreground/90" />
+            <span className="text-base font-semibold tracking-[0.02em]">DataSteel</span>
           </div>
           <Button
             size="sm"
@@ -48,29 +48,35 @@ const Landing = () => {
       </header>
 
       {/* Hero */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20">
-        <div className="flex items-center gap-3 mb-6">
-          <FlaskConical className="h-10 w-10 text-primary" />
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground">DataSteel</h1>
+      <main className="flex-1 flex flex-col items-center justify-center px-4 py-20 relative overflow-hidden">
+        <div className="absolute inset-0 bg-grid-pattern [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,black_40%,transparent_100%)] pointer-events-none" />
+
+        <div className="relative flex flex-col items-center">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-primary bg-primary/10 border border-primary/20 rounded-full px-3 py-1 mb-6">
+            <FlaskConical className="h-3.5 w-3.5" />
+            Análise metalúrgica assistida por IA
+          </span>
+
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground text-center">DataSteel</h1>
+
+          <p className="text-xl md:text-2xl text-foreground text-center max-w-2xl mt-4 mb-4 font-medium">
+            Análise química inteligente para reclassificação de chapas de aço
+          </p>
+          <p className="text-muted-foreground text-center max-w-xl mb-10">
+            Transforme certificados de qualidade em insights técnicos para materiais de desvio NTU, NRU, NIR, QC
+          </p>
+
+          <Button size="lg" className="text-base px-8 py-6" onClick={() => navigate('/auth')}>
+            Acessar Plataforma
+          </Button>
         </div>
 
-        <p className="text-xl md:text-2xl text-foreground text-center max-w-2xl mb-4 font-medium">
-          Análise química inteligente para reclassificação de chapas de aço
-        </p>
-        <p className="text-muted-foreground text-center max-w-xl mb-10">
-          Transforme certificados de qualidade em insights técnicos para materiais de desvio NTU, NRU, NIR, QC
-        </p>
-
-        <Button size="lg" className="text-base px-8 py-6" onClick={() => navigate('/auth')}>
-          Acessar Plataforma
-        </Button>
-
         {/* Features */}
-        <section className="mt-20 w-full max-w-4xl">
+        <section className="relative mt-20 w-full max-w-4xl">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {features.map((f) => (
-              <div key={f.title} className="corporate-card p-6 flex gap-4 items-start hover:shadow-md transition-shadow">
-                <div className="rounded-lg bg-primary/10 p-2.5 shrink-0">
+              <div key={f.title} className="corporate-card p-6 flex gap-4 items-start border-l-2 border-l-primary/40 hover:border-l-primary hover:shadow-md transition-all">
+                <div className="rounded-md bg-primary/10 p-2.5 shrink-0">
                   <f.icon className="h-5 w-5 text-primary" />
                 </div>
                 <div>
@@ -83,7 +89,7 @@ const Landing = () => {
         </section>
 
         {/* Pricing */}
-        <section className="mt-20 w-full max-w-4xl">
+        <section className="relative mt-20 w-full max-w-4xl">
           <h2 className="text-2xl font-bold text-foreground text-center mb-2">Planos de Créditos</h2>
           <p className="text-muted-foreground text-center mb-8">Cada análise consome 1 crédito. Comece com 3 créditos grátis!</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -102,7 +108,7 @@ const Landing = () => {
                   </span>
                 )}
                 <div className="flex justify-center mb-3">
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center">
                     <Coins className="h-6 w-6 text-primary" />
                   </div>
                 </div>

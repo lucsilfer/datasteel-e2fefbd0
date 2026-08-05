@@ -162,10 +162,12 @@ const Admin = () => {
       <header className="corporate-header text-white sticky top-0 z-50">
         <div className="container max-w-6xl mx-auto flex items-center justify-between py-4 px-4">
           <div className="flex items-center gap-3">
-            <FlaskConical className="h-6 w-6" />
+            <div className="h-9 w-9 rounded-md bg-white/10 flex items-center justify-center shrink-0">
+              <FlaskConical className="h-5 w-5" />
+            </div>
             <div>
-              <h1 className="text-lg font-bold tracking-tight">DataSteel Admin</h1>
-              <p className="text-xs text-white/70">Painel Administrativo</p>
+              <h1 className="text-base font-semibold tracking-[0.02em]">DataSteel Admin</h1>
+              <p className="text-xs text-white/60">Painel Administrativo</p>
             </div>
           </div>
           <Button
@@ -251,7 +253,7 @@ const Admin = () => {
                               Bloqueado
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-green-600 text-xs font-semibold">
+                            <span className="inline-flex items-center gap-1 text-safe text-xs font-semibold">
                               <ShieldCheck className="h-3.5 w-3.5" />
                               Ativo
                             </span>

@@ -48,18 +48,20 @@ const Auth = () => {
       {/* Header */}
       <header className="corporate-header text-white">
         <div className="container max-w-6xl mx-auto flex items-center py-4 px-4">
-          <div className="flex items-center gap-2">
-            <FlaskConical className="h-6 w-6" />
-            <span className="text-lg font-bold tracking-tight">DataSteel</span>
+          <div className="flex items-center gap-2.5">
+            <FlaskConical className="h-5 w-5 text-primary-foreground/90" />
+            <span className="text-base font-semibold tracking-[0.02em]">DataSteel</span>
           </div>
         </div>
       </header>
 
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="corporate-card p-8 w-full max-w-md space-y-6">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <FlaskConical className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-primary">DataSteel</span>
+          <div className="flex flex-col items-center gap-2 mb-2">
+            <div className="h-11 w-11 rounded-md bg-primary/10 flex items-center justify-center">
+              <FlaskConical className="h-5 w-5 text-primary" />
+            </div>
+            <span className="text-lg font-bold text-foreground tracking-tight">DataSteel</span>
           </div>
 
           <h2 className="text-center text-lg font-semibold text-foreground">
